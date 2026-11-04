@@ -1,0 +1,26 @@
+<data>
+  <interval id="warmup" begin="0" end="900">
+    <edge id="1125146807#0" entered="250"/>  <!-- Fowler Ave EB, west of 30th St -->
+    <edge id="88714948#1" entered="238"/>  <!-- Fowler Ave WB, east of Bull Run Dr -->
+    <edge id="66426595#2" entered="125"/>  <!-- N 30th St NB, south of Fowler -->
+    <edge id="70945154#3" entered="138"/>  <!-- Bruce B Downs Blvd SB, north of Pine Dr -->
+    <edge id="41547256#1" entered="70"/>  <!-- McKinley Dr NB, south of Fowler -->
+    <edge id="99650283#2" entered="55"/>  <!-- N 46th St NB, south of Fowler -->
+    <edge id="59848576#1" entered="75"/>  <!-- Leroy Collins Blvd SB, north of Alumni Dr -->
+    <edge id="142214945#1" entered="38"/>  <!-- USF Magnolia Dr SB, north of Alumni Dr -->
+    <edge id="38521244" entered="38"/>  <!-- USF Bull Run Dr SB, north of Fowler -->
+    <edge id="1466353051" entered="12"/>  <!-- campus road EB, west of Leroy Collins Blvd -->
+  </interval>
+  <interval id="pm_peak" begin="900" end="4500">
+    <edge id="1125146807#0" entered="1000"/>  <!-- Fowler Ave EB, west of 30th St -->
+    <edge id="88714948#1" entered="950"/>  <!-- Fowler Ave WB, east of Bull Run Dr -->
+    <edge id="66426595#2" entered="500"/>  <!-- N 30th St NB, south of Fowler -->
+    <edge id="70945154#3" entered="550"/>  <!-- Bruce B Downs Blvd SB, north of Pine Dr -->
+    <edge id="41547256#1" entered="280"/>  <!-- McKinley Dr NB, south of Fowler -->
+    <edge id="99650283#2" entered="220"/>  <!-- N 46th St NB, south of Fowler -->
+    <edge id="59848576#1" entered="300"/>  <!-- Leroy Collins Blvd SB, north of Alumni Dr -->
+    <edge id="142214945#1" entered="150"/>  <!-- USF Magnolia Dr SB, north of Alumni Dr -->
+    <edge id="38521244" entered="150"/>  <!-- USF Bull Run Dr SB, north of Fowler -->
+    <edge id="1466353051" entered="50"/>  <!-- campus road EB, west of Leroy Collins Blvd -->
+  </interval>
+</data>

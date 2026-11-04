@@ -1,0 +1,102 @@
+[
+ {
+  "ok": true,
+  "claim": "list_intersections names the 6 signals by cross streets; a short name resolves, an ambiguous one lists all",
+  "detail": "E Fowler Ave & McKinley Dr"
+ },
+ {
+  "ok": true,
+  "claim": "advance runs forward by the given seconds, relative to now",
+  "detail": "120 s then 50 s -> 170 s"
+ },
+ {
+  "ok": true,
+  "claim": "advance: change in vehicles in the network = entered - left",
+  "detail": "Time 1500 s (analysis hour). In the last 300 s: 325 entered, 332 left; network 312 -> 305 vehicles (-7 = 325 - 332). Wai"
+ },
+ {
+  "ok": true,
+  "claim": "get_approach_state reports \"no vehicles (speed not measured)\" on an empty block, not the speed limit",
+  "detail": "Leroy Collins Blvd & USF Alumni Dr, WB at 1 s: 0 vehicles on 2,434 ft of storage, 0 stopped; back of queue 0 f"
+ },
+ {
+  "ok": true,
+  "claim": "queue rule: slower than 5 km/h and within 10 m of the queue ahead, in any lane",
+  "detail": "back 25.0 m, 3 vehicles"
+ },
+ {
+  "ok": true,
+  "claim": "the back of queue uses the same thresholds as SUMO's E2 detector: on a single-lane approach they agree",
+  "detail": "552 of 592 lane-seconds within one car length (7.5 m)"
+ },
+ {
+  "ok": true,
+  "claim": "set_signal_timing rejects a green below the pedestrian minimum and changes nothing",
+  "detail": "Rejected, nothing changed: crosswalk across the EB leg (63 ft): 15 s, needs 25 s; crosswalk across the WB leg (94 ft): 15 s, needs 34 s."
+ },
+ {
+  "ok": true,
+  "claim": "set_signal_timing applies a plan that meets every minimum",
+  "detail": "E Fowler Ave & McKinley Dr: new plan, cycle 95 s, durations [40.0, 5.0, 6.0, 5.0, 34.0, 5.0]."
+ },
+ {
+  "ok": true,
+  "claim": "get_signal_plan flags a yellow shorter than the ITE change interval",
+  "detail": "phase 1: 3 s change (yellow)  SHORTER THAN ITE 3.2 s; still green: nothing"
+ },
+ {
+  "ok": true,
+  "claim": "take_screenshot without the GUI returns an error, not a crash",
+  "detail": "Error: no GUI. Start with start_live(gui=True) to take screenshots."
+ },
+ {
+  "ok": true,
+  "claim": "webster_timing: the script's raw plan breaks minimums; the checked plan breaks none",
+  "detail": "raw 44 problems, checked 0"
+ },
+ {
+  "ok": true,
+  "claim": "compare_plans: blocked without an engineer's approval; one seed and rule-breaking plans are rejected",
+  "detail": "blocked / rejected as described"
+ },
+ {
+  "ok": true,
+  "claim": "check_calibration: random demand fails, demand rebuilt from counts with the prior passes (1 seed)",
+  "detail": "GEH < 5 at 6 of 16 stations (38%) | GEH < 5 at 15 of 16 stations (94%)"
+ },
+ {
+  "ok": true,
+  "claim": "every tool has a description and a JSON schema; run_tool turns errors into text",
+  "detail": "12 tools"
+ },
+ {
+  "ok": true,
+  "claim": "API trap: an empty lane reports the speed limit as its \"average speed\"",
+  "detail": "0 vehicles, \"average speed\" 20 mph = the limit"
+ },
+ {
+  "ok": true,
+  "claim": "API trap: lane occupancy is a fraction (0-1), although the docstring says %",
+  "detail": "-44131120#5_0: returned 0.121; vehicles cover 12.1% of the lane"
+ },
+ {
+  "ok": true,
+  "claim": "API trap: simulationStep(t) runs to the ABSOLUTE time t; a past t does nothing",
+  "detail": "at 120 s, simulation_step(50) -> still 120 s"
+ },
+ {
+  "ok": true,
+  "claim": "API trap: setPhaseDuration changes this phase once; the next cycle is back to the plan",
+  "detail": "this phase 60 s, next cycle 35 s"
+ },
+ {
+  "ok": true,
+  "claim": "API trap: sumolib.net.readNet reads no signal plans unless withPrograms=True",
+  "detail": "readNet(net) -> 0 phases"
+ },
+ {
+  "ok": true,
+  "claim": "API trap: --end is ignored when TraCI drives SUMO",
+  "detail": "--end 300, reached 400 s"
+ }
+]

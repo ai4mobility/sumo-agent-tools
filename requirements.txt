@@ -1,0 +1,12 @@
+# SUMO and its Python libraries (the claim tests were run with 1.28.0)
+eclipse-sumo==1.28.0
+traci==1.28.0
+sumolib==1.28.0
+libsumo==1.28.0
+pyproj
+rtree
+# serve the tools to Claude over MCP
+mcp>=2
+# only for experiments.py (token counts)
+tokenizers
+huggingface_hub
