@@ -21,6 +21,21 @@
  },
  {
   "ok": true,
+  "claim": "readings outside the analysis hour carry a WARM-UP or AFTER-PEAK warning; inside it they do not",
+  "detail": "WARM-UP WARNING: 1 s is before the analy | AFTER-PEAK WARNING: 4501 s is after the "
+ },
+ {
+  "ok": true,
+  "claim": "get_approach_state states the spillback verdict either way, with the share of storage",
+  "detail": "pillback: the queue fills 19% of the storage (the flag is se"
+ },
+ {
+  "ok": true,
+  "claim": "start_live(gui=True) on a computer without a screen says to use gui=false, at once",
+  "detail": "Error: sumo-gui needs a screen to open its window, and this computer h"
+ },
+ {
+  "ok": true,
   "claim": "queue rule: slower than 5 km/h and within 10 m of the queue ahead, in any lane",
   "detail": "back 25.0 m, 3 vehicles"
  },

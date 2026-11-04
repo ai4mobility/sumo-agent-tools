@@ -76,6 +76,44 @@ def _():
     return txt[:110]
 
 
+@claim('readings outside the analysis hour carry a WARM-UP or AFTER-PEAK warning; inside it they do not')
+def _():
+    T.start_live()
+    T.advance(1)
+    early = T.get_approach_state('Fowler & 30th', 'WB')
+    early_c = T.get_corridor_state('WB')
+    T.advance(899)
+    peak = T.get_approach_state('Fowler & 30th', 'WB')
+    T.advance(3600)
+    T.advance(1)                    # 4501 s
+    after = T.get_approach_state('Fowler & 30th', 'WB')
+    assert 'WARM-UP WARNING' in early and 'WARM-UP WARNING' in early_c, early
+    assert 'WARNING' not in peak and 'AFTER-PEAK WARNING' in after, (peak, after)
+    return early[early.index('WARM-UP'):][:40] + ' | ' + after[after.index('AFTER-PEAK'):][:40]
+
+
+@claim('get_approach_state states the spillback verdict either way, with the share of storage')
+def _():
+    T.start_live()
+    T.advance(1800)
+    txt = T.get_approach_state('Fowler & 30th', 'WB')
+    assert 'No spillback: the queue fills' in txt or 'SPILLBACK: the queue fills' in txt, txt
+    return txt[txt.index('pillback'):][:60]
+
+
+@claim('start_live(gui=True) on a computer without a screen says to use gui=false, at once')
+def _():
+    if not sys.platform.startswith('linux'):
+        return 'skipped: not Linux'
+    saved = {k: os.environ.pop(k, None) for k in ('DISPLAY', 'WAYLAND_DISPLAY')}
+    try:
+        txt = T.start_live(gui=True)
+    finally:
+        os.environ.update({k: v for k, v in saved.items() if v})
+    assert txt.startswith('Error: sumo-gui needs a screen') and 'gui=false' in txt, txt
+    return txt[:70]
+
+
 @claim('queue rule: slower than 5 km/h and within 10 m of the queue ahead, in any lane')
 def _():
     v = [(0.5, 5, 0.0), (8.0, 5, 0.5), (20.0, 5, 1.0), (40.0, 5, 0.0), (12.0, 5, 3.0)]
@@ -184,7 +222,8 @@ def _():
 def _():
     assert all(t['description'] and t['input_schema']['type'] == 'object' for t in T.TOOLS)
     assert T.run_tool('no_such_tool', {}).startswith('Error: there is no tool')
-    assert T.run_tool('advance', {'seconds': 10}).startswith('Error: No live simulation')
+    no_sim = T.run_tool('advance', {'seconds': 10})
+    assert no_sim.startswith('Error: No live simulation') and 'You can start one yourself' in no_sim, no_sim
     return f'{len(T.TOOLS)} tools'
 
 

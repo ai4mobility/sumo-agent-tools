@@ -8,6 +8,10 @@ anyone who wants to give an AI agent a traffic simulator.
 shows each tool twice, once with the description copied from SUMO's API docs and once written by a traffic engineer,
 and measures the difference on a real network.
 
+**Want to write your own tool?** Start with [`WRITING_TOOLS.md`](WRITING_TOOLS.md), a guide for traffic engineers
+who know SUMO but are new to AI. It builds one tool step by step, from a raw TraCI call to a tested tool a model can
+use ([`examples/get_signal_state.py`](examples/get_signal_state.py)).
+
 ## Why traffic knowledge belongs in the tool
 
 The model never reads your code. It reads a tool's name, its description, its inputs and the text that comes back.
@@ -71,6 +75,9 @@ Fowler Avenue along the USF Tampa campus, from west of N 30th St to east of USF 
 | `build_companion.py`, `companion_template.html` | Build the companion page from the numbers; the build fails if a number is missing. |
 | `numbers_sumo_tools.json`, `claims_result.json` | The measured numbers and the claim results the page is built from. |
 | `docs/index.html` | The companion page. |
+| `WRITING_TOOLS.md` | How to turn traffic knowledge into a tool: descriptions, results, SUMO traps, tests, and how to watch a model use it. |
+| `examples/get_signal_state.py` | The guide's worked example: one TraCI call as an API wrapper and as an engineer's tool, with a test for each claim. |
+| `walkthrough/` | How a model calls these tools, step by step: a small Qwen harness, seven recorded runs on a laptop-size model, and every MCP message between a client and `mcp_server.py` ([walkthrough/README.md](walkthrough/README.md)). |
 
 Rebuild everything:
 
@@ -89,7 +96,9 @@ python build_companion.py docs/index.html
   t = 1 s and a = 10 ft/s², cycle at most 180 s) are examples. Use your agency's standards.
 - The network has no sidewalks, so a crosswalk is assumed on every leg that netconvert's own plan stops at some point.
 - Over MCP, stdout carries the protocol. `mcp_server.py` sends tool printing to stderr, and `start_live` sends
-  SUMO's console text to the null device. Keep it that way if you add tools.
+  SUMO's console text to the null device. The server also publishes the toolkit's own schemas, passes each tool's
+  error text on to the model, and flags refusals ("Rejected", "Blocked", "Error") with `isError`; the MCP library
+  would otherwise do none of these (`walkthrough/mcp_trace.py` shows the messages). Keep it that way if you add tools.
 - `runs/` holds every simulation's output and is not tracked; delete it freely.
 
 ## Contributing

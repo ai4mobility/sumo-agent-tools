@@ -1,0 +1,262 @@
+{
+ "intersection": "E Fowler Ave & Bruce B Downs Blvd & N 30th St",
+ "approach": "WB",
+ "raw_traci": {
+  "simulation.getTime()": 8100.0,
+  "lanes": [
+   {
+    "lane": "109198216#0_0",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "109198216#0_1",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "109198216#0_2",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "109198216#0_3",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "109198216#0_4",
+    "lane.getLastStepVehicleIDs()": [
+     "2700_459",
+     "2700_543",
+     "3600_856"
+    ],
+    "lane.getLastStepMeanSpeed()": 0.0,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": [
+     {
+      "id": "2700_459",
+      "vehicle.getLanePosition()": 6.570620159818534,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "2700_543",
+      "vehicle.getLanePosition()": 14.071670332881922,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "3600_856",
+      "vehicle.getLanePosition()": 21.572722344852863,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     }
+    ]
+   },
+   {
+    "lane": "905700234_0",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700234_1",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700234_2",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700234_3",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700234_4",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700234_5",
+    "lane.getLastStepVehicleIDs()": [
+     "3600_859",
+     "3600_506",
+     "3600_443",
+     "2700_765",
+     "2700_883",
+     "2700_901",
+     "2700_776",
+     "3600_632"
+    ],
+    "lane.getLastStepMeanSpeed()": 0.0,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": [
+     {
+      "id": "3600_859",
+      "vehicle.getLanePosition()": 7.901303468429229,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "3600_506",
+      "vehicle.getLanePosition()": 15.402331089377805,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "3600_443",
+      "vehicle.getLanePosition()": 22.903385054914317,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "2700_765",
+      "vehicle.getLanePosition()": 30.40439404398807,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "2700_883",
+      "vehicle.getLanePosition()": 37.90543342849506,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "2700_901",
+      "vehicle.getLanePosition()": 45.40645749042993,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "2700_776",
+      "vehicle.getLanePosition()": 52.90753682121125,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     },
+     {
+      "id": "3600_632",
+      "vehicle.getLanePosition()": 60.408586019007394,
+      "vehicle.getLength()": 5.0,
+      "vehicle.getSpeed()": 0.0
+     }
+    ]
+   },
+   {
+    "lane": "905700233_0",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700233_1",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700233_2",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700233_3",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "905700233_4",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "645485033_0",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "645485033_1",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "645485033_2",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "645485033_3",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 20.12,
+    "lane.getMaxSpeed()": 20.12,
+    "vehicles": []
+   },
+   {
+    "lane": "77843977#0_0",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 22.35,
+    "lane.getMaxSpeed()": 22.35,
+    "vehicles": []
+   },
+   {
+    "lane": "77843977#0_1",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 22.35,
+    "lane.getMaxSpeed()": 22.35,
+    "vehicles": []
+   },
+   {
+    "lane": "77843977#0_2",
+    "lane.getLastStepVehicleIDs()": [],
+    "lane.getLastStepMeanSpeed()": 22.35,
+    "lane.getMaxSpeed()": 22.35,
+    "vehicles": []
+   }
+  ],
+  "trafficlight.getRedYellowGreenState()": "rryyrrrrrrrryyrrrrr",
+  "trafficlight.getNextSwitch()": 8100.0
+ },
+ "summary": {
+  "lanes": 23,
+  "empty_lanes": 21,
+  "vehicles": 11,
+  "empty_lanes_reporting_their_speed_limit": 21,
+  "storage_m_from_network_file": 906.29
+ },
+ "tool_result": "E Fowler Ave & Bruce B Downs Blvd & N 30th St, WB at 8100 s: 11 vehicles on 2,973 ft of storage, 11 stopped; back of queue 274 ft (11 vehicles); 0 mph space-mean speed; 5 veh/mi/lane; through signal red, next change in 0 s. No spillback: the queue fills 9% of the storage (the flag is set at 85%). AFTER-PEAK WARNING: 8100 s is after the analysis hour (900-4500 s) and the peak demand has ended, so this reading says nothing about the peak. Time cannot go back: call start_live, then advance to a time between 900 and 4500 s.",
+ "same_as_run_G_round_8": true
+}

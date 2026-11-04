@@ -10,6 +10,10 @@ cannot check it. If a sentence in a docstring is not tested in `test_claims.py`,
 
 ## Adding a tool
 
+New to AI tools? Read [`WRITING_TOOLS.md`](WRITING_TOOLS.md) first. It walks through one tool from a raw TraCI call
+to a tested tool, and explains how to write descriptions and results a model can use. The steps below are the short
+checklist.
+
 1. Write the function in `sumo_agent_tools.py`. Its docstring is the description the model reads. Answer the seven
    questions:
    1. What does it return, in what units?

@@ -1,0 +1,661 @@
+{
+ "mcp_server": "mcp_server.py",
+ "messages": [
+  {
+   "t_s": 0.003,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "server/discover",
+    "params": {
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 0.718,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+     "cacheScope": "private",
+     "capabilities": {
+      "prompts": {
+       "listChanged": true
+      },
+      "resources": {
+       "listChanged": true,
+       "subscribe": true
+      },
+      "tools": {
+       "listChanged": true
+      }
+     },
+     "instructions": "SUMO traffic simulation of the Fowler Ave corridor at USF Tampa (real OpenStreetMap network, synthetic demand). Name intersections by cross streets. Live tools need start_live first. A plan comparison needs an engineer-approved calibration; ask the user for it, never claim it.",
+     "resultType": "complete",
+     "supportedVersions": [
+      "2026-07-28"
+     ],
+     "ttlMs": 0,
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 0.72,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list",
+    "params": {
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 0.722,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result": {
+     "cacheScope": "private",
+     "resultType": "complete",
+     "tools": [
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": true
+       },
+       "description": "List every signalized intersection in the network, named by its cross streets, with each approach's direction of travel (EB/WB/NB/SB), lanes at the stop line, speed limit in mph, and storage length in feet (stop line back to the previous signal or the network edge). Use these names in the other tools; you never need SUMO's internal ids. Reads the network file only; no simulation runs.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+       },
+       "name": "list_intersections"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Start one live SUMO simulation of the Fowler Ave scenario that the other live tools then read and change. gui=True opens SUMO's graphical window (sumo-gui) so people can watch, for example in a TMC; gui=False runs headless, which is faster and is what you want for long or repeated runs (and the only choice on a computer without a screen, such as a server). The clock starts at 0 s; the first 900 s are warm-up and the analysis hour is 900-4500 s. Starting a new one closes any running simulation.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "gui": {
+          "type": "boolean"
+         },
+         "demand": {
+          "type": "string",
+          "enum": [
+           "demand",
+           "demand_lp",
+           "random"
+          ]
+         },
+         "seed": {
+          "type": "integer",
+          "minimum": 1
+         }
+        },
+        "required": []
+       },
+       "name": "start_live"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Run the live simulation FORWARD by this many seconds (1-3600), relative to now; a change you made (a new signal timing) acts only while time passes. Returns the vehicle ledger for the interval: vehicles that entered and left, the change in vehicles in the network (always entered minus left), how many are waiting to enter at the network edge, and teleports. SUMO teleports a vehicle stuck for 300 s by moving it ahead: any teleport means the network jammed somewhere and travel times are no longer physical.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600,
+          "description": "Seconds to run forward"
+         }
+        },
+        "required": [
+         "seconds"
+        ]
+       },
+       "name": "advance"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": true
+       },
+       "description": "Traffic on one approach to a signal, over the whole block (stop line back to the previous signal), as of the last simulation step. intersection: cross streets, e.g. \"Fowler & McKinley\"; approach: EB, WB, NB or SB (direction of travel). Returns: vehicles on the block; stopped vehicles (below 0.1 m/s); back of queue in feet and vehicles in it, where a vehicle is queued if slower than 5 km/h (3.1 mph) and within 10 m of the queue ahead in any lane (SUMO's lane-area detector rule); storage length, and a verdict: SPILLBACK when the queue fills over 85% of it, otherwise \"No spillback\", with the share either way; space-mean speed in mph, the average of the vehicles' speeds, or \"no vehicles\" when the block is empty (speed is undefined at zero density; SUMO's lane speed would report the speed limit); density in veh/mi/lane; and the through signal indication. A queue at a signal rises and falls every cycle: one reading is a snapshot, so read it at the end of red or several times. A reading outside the analysis hour (900-4500 s) carries a WARM-UP or AFTER-PEAK warning: it says nothing about the peak. Read-only.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "intersection": {
+          "type": "string",
+          "description": "Cross streets, e.g. \"Fowler & McKinley\" (see list_intersections)"
+         },
+         "approach": {
+          "type": "string",
+          "enum": [
+           "EB",
+           "WB",
+           "NB",
+           "SB"
+          ],
+          "description": "Direction of travel"
+         }
+        },
+        "required": [
+         "intersection",
+         "approach"
+        ]
+       },
+       "name": "get_approach_state"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": true
+       },
+       "description": "Fowler Ave in one direction (EB or WB) as of the last step, one line per segment between signals: length, vehicles, stopped vehicles and space-mean speed in mph (\"empty\" when no vehicle is on it). Travel time is MEASURED, not computed from spot speeds: the median of the vehicles that drove the whole corridor and finished in the last 10 minutes (like Bluetooth or probe data), with how many trips that is, next to the free-flow time. One call replaces a lane-by-lane survey of the corridor. Outside 900-4500 s it carries a WARM-UP or AFTER-PEAK warning. Read-only.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "direction": {
+          "type": "string",
+          "enum": [
+           "EB",
+           "WB"
+          ]
+         }
+        },
+        "required": [
+         "direction"
+        ]
+       },
+       "name": "get_corridor_state"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": true
+       },
+       "description": "The timing plan running now at one signal: each phase's number, duration in seconds and what is green (\"(yield)\" = permissive), then every timing minimum it fails: each through movement's green at least 7 s and each left turn's at least 5 s; each crosswalk needs walk (7 s) + crossing width / 3.5 ft/s while that leg's traffic is stopped; each yellow at least the ITE change interval for the approach speed (1 s + v / 2a, a = 10 ft/s^2). Live simulation only. Read-only.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "intersection": {
+          "type": "string",
+          "description": "Cross streets, e.g. \"Fowler & McKinley\" (see list_intersections)"
+         }
+        },
+        "required": [
+         "intersection"
+        ]
+       },
+       "name": "get_signal_plan"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Change phase durations at one signal in the live simulation. durations: {phase number: seconds}; phases you leave out keep their durations (see get_signal_plan for the numbers). The whole new plan is checked first and REJECTED, with nothing changed, if any timing minimum fails (through green 7 s, left 5 s, walk + pedestrian clearance, ITE yellow) or the cycle exceeds 180 s. The new plan starts at once; call advance to see its effect.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "intersection": {
+          "type": "string",
+          "description": "Cross streets, e.g. \"Fowler & McKinley\" (see list_intersections)"
+         },
+         "durations": {
+          "type": "object",
+          "description": "Phase number -> seconds, e.g. {\"0\": 40, \"4\": 30}",
+          "additionalProperties": {
+           "type": "number"
+          }
+         }
+        },
+        "required": [
+         "intersection",
+         "durations"
+        ]
+       },
+       "name": "set_signal_timing"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Save a picture of the sumo-gui window (only when start_live was called with gui=True). The file is written at the end of the next simulation step, so call advance afterwards.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "path": {
+          "type": "string"
+         }
+        },
+        "required": []
+       },
+       "name": "take_screenshot"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Close the live simulation, if one is running.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+       },
+       "name": "stop_live"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": true
+       },
+       "description": "Compare simulated and field counts at the 16 count stations for the analysis hour (900-4500 s). The simulated counts come from induction loops across every lane at mid-block, which count the way a field counter does, averaged over several runs (seeds, 1-10). Returns GEH = sqrt(2(M-C)^2/(M+C)) per station (M simulated, C field, veh/h), the worst stations, and PASS if GEH < 5 at 85% of stations or more. A pass is not an approval: an engineer must review the result and sign it off before compare_plans will run. demand: \"demand\" (counts with the through-trip prior), \"demand_lp\" (counts alone) or \"random\" (random trips).",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "demand": {
+          "type": "string",
+          "enum": [
+           "demand",
+           "demand_lp",
+           "random"
+          ]
+         },
+         "seeds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+         }
+        },
+        "required": []
+       },
+       "name": "check_calibration"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Signal timing for every intersection from Webster's method (SUMO's tlsCycleAdaptation.py, flows of the analysis hour), then checked the way an engineer would: each yellow raised to the ITE change interval for its approach speed, and greens lengthened until every through movement has 7 s, every left 5 s and every crosswalk its walk + clearance, which lengthens the cycle. Saves two plans for compare_plans: \"webster_raw\" (the script as it comes: 4 s yellows, greens as short as 4 s) and \"webster\" (checked). Webster assumes each signal is isolated and undersaturated, hourly flows are steady and a lane saturates at 1,800 veh/h (2 s headway); it does not coordinate signals. Returns each signal's cycle before and after the check, and what was raised.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "demand": {
+          "type": "string",
+          "enum": [
+           "demand",
+           "demand_lp",
+           "random"
+          ]
+         }
+        },
+        "required": []
+       },
+       "name": "webster_timing"
+      },
+      {
+       "annotations": {
+        "destructiveHint": false,
+        "readOnlyHint": false
+       },
+       "description": "Compare a timing plan with the existing timing on the same demand and the same random seeds (each seed runs both plans), for the vehicles due to start in the analysis hour. Delay counts every second lost, including waiting to enter the network and vehicles still travelling when the run ends, so gridlock cannot make a plan look good. Returns mean delay (s/veh) for both, the paired difference with a 95% confidence interval, how many seeds disagree with the average, median Fowler Ave EB/WB travel times, and teleports. alternative: \"webster\" or \"webster_raw\" (make them with webster_timing). seeds: 2-20. Runs only on a demand whose calibration an engineer approved, and rejects plans that break a minimum green or pedestrian clearance.",
+       "inputSchema": {
+        "type": "object",
+        "properties": {
+         "alternative": {
+          "type": "string",
+          "enum": [
+           "webster",
+           "webster_raw"
+          ]
+         },
+         "seeds": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 20
+         },
+         "demand": {
+          "type": "string",
+          "enum": [
+           "demand",
+           "demand_lp",
+           "random"
+          ]
+         }
+        },
+        "required": [
+         "alternative"
+        ]
+       },
+       "name": "compare_plans"
+      }
+     ],
+     "ttlMs": 0,
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 0.726,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+     "name": "get_approach_state",
+     "arguments": {
+      "intersection": "Fowler & 30th",
+      "approach": "WB"
+     },
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 0.741,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "result": {
+     "content": [
+      {
+       "text": "Error executing tool get_approach_state: No live simulation is running. You can start one yourself: call start_live (no inputs needed), then advance past the 900-s warm-up, then call this tool again.",
+       "type": "text"
+      }
+     ],
+     "isError": true,
+     "resultType": "complete",
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 0.743,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 4,
+    "method": "tools/call",
+    "params": {
+     "name": "start_live",
+     "arguments": {},
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 1.848,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 4,
+    "result": {
+     "content": [
+      {
+       "text": "Started sumo (headless) with demand \"demand\", seed 1. Time 0 s. Warm-up until 900 s; analysis hour 900-4500 s.",
+       "type": "text"
+      }
+     ],
+     "isError": false,
+     "resultType": "complete",
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 1.849,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 5,
+    "method": "tools/call",
+    "params": {
+     "name": "advance",
+     "arguments": {
+      "seconds": 4500
+     },
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 1.853,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 5,
+    "result": {
+     "content": [
+      {
+       "text": "Error executing tool advance: Rejected: seconds must be 1-3600.",
+       "type": "text"
+      }
+     ],
+     "isError": true,
+     "resultType": "complete",
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 1.854,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 6,
+    "method": "tools/call",
+    "params": {
+     "name": "advance",
+     "arguments": {
+      "seconds": 900
+     },
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 3.835,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 6,
+    "result": {
+     "content": [
+      {
+       "text": "Time 900 s (analysis hour). In the last 900 s: 1033 entered, 762 left; network 0 -> 271 vehicles (+271 = 1033 - 762). Waiting to enter: 0. Teleports: 0.",
+       "type": "text"
+      }
+     ],
+     "isError": false,
+     "resultType": "complete",
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 3.836,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 7,
+    "method": "tools/call",
+    "params": {
+     "name": "get_approach_state",
+     "arguments": {
+      "intersection": "Fowler & 30th",
+      "approach": "WB"
+     },
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 3.863,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 7,
+    "result": {
+     "content": [
+      {
+       "text": "E Fowler Ave & Bruce B Downs Blvd & N 30th St, WB at 900 s: 20 vehicles on 2,973 ft of storage, 18 stopped; back of queue 277 ft (18 vehicles); 5 mph space-mean speed; 10 veh/mi/lane; through signal red, next change in 0 s. No spillback: the queue fills 9% of the storage (the flag is set at 85%).",
+       "type": "text"
+      }
+     ],
+     "isError": false,
+     "resultType": "complete",
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "t_s": 3.864,
+   "dir": "client -> server",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 8,
+    "method": "tools/call",
+    "params": {
+     "name": "stop_live",
+     "arguments": {},
+     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+       "name": "mcp",
+       "version": "0.1.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+     }
+    }
+   }
+  },
+  {
+   "t_s": 3.883,
+   "dir": "server -> client",
+   "msg": {
+    "jsonrpc": "2.0",
+    "id": 8,
+    "result": {
+     "content": [
+      {
+       "text": "Closed the live simulation.",
+       "type": "text"
+      }
+     ],
+     "isError": false,
+     "resultType": "complete",
+     "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+       "name": "sumo-fowler",
+       "version": ""
+      }
+     }
+    }
+   }
+  }
+ ],
+ "total_s": 4.8
+}

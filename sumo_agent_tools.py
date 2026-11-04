@@ -292,17 +292,25 @@ _LIVE = {'on': False}
 def start_live(gui: bool = False, demand: str = 'demand', seed: int = 1) -> str:
     """Start one live SUMO simulation of the Fowler Ave scenario that the other live tools then read and change.
     gui=True opens SUMO's graphical window (sumo-gui) so people can watch, for example in a TMC; gui=False runs
-    headless, which is faster and is what you want for long or repeated runs. The clock starts at 0 s; the first
+    headless, which is faster and is what you want for long or repeated runs (and the only choice on a computer
+    without a screen, such as a server). The clock starts at 0 s; the first
     900 s are warm-up and the analysis hour is 900-4500 s. Starting a new one closes any running simulation."""
     if demand not in SCENARIO['demands']:
         return f'Error: demand must be one of {list(SCENARIO["demands"])}.'
+    no_screen = ('Error: sumo-gui needs a screen to open its window, and this computer has none. Call start_live '
+                 'again with gui=false: the simulation runs headless and every other tool works the same.')
+    if gui and sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+        return no_screen
     stop_live()
     binary = os.path.join(BIN, 'sumo-gui' if gui else 'sumo')
     cmd = [binary, '-n', SCENARIO['net'], '-r', SCENARIO['demands'][demand], '-a', SCENARIO['detectors'],
            '--seed', str(seed), '--no-step-log', '--no-warnings', '--time-to-teleport', '300']
     if gui:
         cmd += ['--start', '--quit-on-end', '--delay', '20']
-    traci.start(cmd, stdout=subprocess.DEVNULL)      # keep SUMO's console text off stdout (MCP uses stdout)
+    try:
+        traci.start(cmd, stdout=subprocess.DEVNULL, numRetries=10 if gui else 60)   # SUMO's text off stdout (MCP)
+    except (traci.exceptions.TraCIException, traci.exceptions.FatalTraCIError) as e:   # SUMO exited or never answered
+        return no_screen if gui else f'Error: SUMO did not start ({e}).'
     _LIVE.update(on=True, gui=gui, demand=demand, seed=seed, teleports=0,
                  probe={d: {'in': {}, 'done': []} for d in ('EB', 'WB')})
     return (f'Started {"sumo-gui" if gui else "sumo (headless)"} with demand "{demand}", seed {seed}. '
@@ -318,9 +326,31 @@ def stop_live() -> str:
     return 'No live simulation was running.'
 
 
+def _verdict(share):
+    """Say the verdict either way: a model reads a missing flag as easily as a present one."""
+    word = 'SPILLBACK' if share > 0.85 else 'No spillback'
+    return f' {word}: the queue fills {share:.0%} of the storage (the flag is set at 85%).'
+
+
+def _period_note():
+    """Say so when a reading falls outside the analysis hour: a model cannot tell a warm-up or a drained network
+    from the peak by looking at the numbers."""
+    t = traci.simulation.getTime()
+    if t < WARMUP:
+        return (f' WARM-UP WARNING: {t:.0f} s is before the analysis hour ({WARMUP}-{END} s) and the network is still '
+                f'filling, so this reading says nothing about the peak. Call advance to reach {WARMUP} s or later, '
+                f'then read again.')
+    if t > END:
+        return (f' AFTER-PEAK WARNING: {t:.0f} s is after the analysis hour ({WARMUP}-{END} s) and the peak demand '
+                f'has ended, so this reading says nothing about the peak. Time cannot go back: call start_live, then '
+                f'advance to a time between {WARMUP} and {END} s.')
+    return ''
+
+
 def _need_live():
     if not _LIVE.get('on'):
-        raise RuntimeError('No live simulation. Call start_live first.')
+        raise RuntimeError('No live simulation is running. You can start one yourself: call start_live (no inputs '
+                           'needed), then advance past the 900-s warm-up, then call this tool again.')
 
 
 CORRIDOR_ENDS = {'EB': ('1125146807#0', '77843971#0'), 'WB': ('88714948#1', '1344053686')}
@@ -358,7 +388,7 @@ def advance(seconds: int) -> str:
     _LIVE['teleports'] += tel
     t, n = traci.simulation.getTime(), traci.vehicle.getIDCount()
     waiting = len(traci.simulation.getPendingVehicles())
-    phase = 'warm-up' if t <= WARMUP else 'analysis hour' if t <= END else 'after the analysis hour'
+    phase = 'warm-up' if t < WARMUP else 'analysis hour' if t <= END else 'after the analysis hour'
     msg = (f'Time {t:.0f} s ({phase}). In the last {t - t0:.0f} s: {dep} entered, {arr} left; network '
            f'{n0} -> {n} vehicles ({n - n0:+d} = {dep} - {arr}). Waiting to enter: {waiting}. Teleports: {tel}.')
     if tel:
@@ -398,11 +428,12 @@ def get_approach_state(intersection: str, approach: str) -> str:
     last simulation step. intersection: cross streets, e.g. "Fowler & McKinley"; approach: EB, WB, NB or SB
     (direction of travel). Returns: vehicles on the block; stopped vehicles (below 0.1 m/s); back of queue in feet
     and vehicles in it, where a vehicle is queued if slower than 5 km/h (3.1 mph) and within 10 m of the queue
-    ahead in any lane (SUMO's lane-area detector rule); storage length, with a SPILLBACK flag when the queue fills
-    85% of it; space-mean speed in mph, the average of the vehicles' speeds, or "no vehicles" when the block is
-    empty (speed is undefined at zero density; SUMO's lane speed would report the speed limit); density in
-    veh/mi/lane; and the through signal indication. A queue at a signal rises and falls every cycle: one reading
-    is a snapshot, so read it at the end of red or several times. Read-only."""
+    ahead in any lane (SUMO's lane-area detector rule); storage length, and a verdict: SPILLBACK when the queue
+    fills over 85% of it, otherwise "No spillback", with the share either way; space-mean speed in mph, the
+    average of the vehicles' speeds, or "no vehicles" when the block is empty (speed is undefined at zero density;
+    SUMO's lane speed would report the speed limit); density in veh/mi/lane; and the through signal indication. A queue at a signal rises and falls every cycle: one reading
+    is a snapshot, so read it at the end of red or several times. A reading outside the analysis hour (900-4500 s)
+    carries a WARM-UP or AFTER-PEAK warning: it says nothing about the peak. Read-only."""
     _need_live()
     tid, name = _resolve(intersection)
     app = _approaches(tid)
@@ -420,10 +451,10 @@ def get_approach_state(intersection: str, approach: str) -> str:
     sig = ('green' if any(c in 'Gg' for c in thru) else 'yellow' if any(c == 'y' for c in thru) else
            'red' if thru else 'no through movement')
     nxt = traci.trafficlight.getNextSwitch(tid) - traci.simulation.getTime()
-    spill = ' SPILLBACK: the queue fills over 85% of the storage.' if back > 0.85 * store else ''
+    spill = _verdict(back / store if store else 0.0)
     return (f'{name}, {approach} at {traci.simulation.getTime():.0f} s: {len(veh)} vehicles on {store / FT:,.0f} ft '
             f'of storage, {stopped} stopped; back of queue {back / FT:,.0f} ft ({nq} vehicles); {speed}; '
-            f'{density:.0f} veh/mi/lane; through signal {sig}, next change in {nxt:.0f} s.{spill}')
+            f'{density:.0f} veh/mi/lane; through signal {sig}, next change in {nxt:.0f} s.{spill}{_period_note()}')
 
 
 def _fowler_path(direction):
@@ -454,7 +485,8 @@ def get_corridor_state(direction: str) -> str:
     vehicles, stopped vehicles and space-mean speed in mph ("empty" when no vehicle is on it). Travel time is
     MEASURED, not computed from spot speeds: the median of the vehicles that drove the whole corridor and finished
     in the last 10 minutes (like Bluetooth or probe data), with how many trips that is, next to the free-flow time.
-    One call replaces a lane-by-lane survey of the corridor. Read-only."""
+    One call replaces a lane-by-lane survey of the corridor. Outside 900-4500 s it carries a WARM-UP or AFTER-PEAK
+    warning. Read-only."""
     _need_live()
     if direction not in ('EB', 'WB'):
         return 'Error: direction must be EB or WB.'
@@ -471,7 +503,7 @@ def get_corridor_state(direction: str) -> str:
     meas = (f'measured travel time {statistics.median(recent) / 60:.1f} min (median of {len(recent)} trips in the '
             f'last 10 min)' if recent else 'no corridor trips finished in the last 10 min')
     return (f'Fowler Ave {direction} at {now:.0f} s, {total_m / 1609.344:.2f} mi: {meas}; free-flow '
-            f'{ff / 60:.1f} min.\n' + '\n'.join(rows))
+            f'{ff / 60:.1f} min.{_period_note()}\n' + '\n'.join(rows))
 
 
 def _plan_report(tid, phases):
