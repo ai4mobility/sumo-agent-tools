@@ -6,13 +6,14 @@ SUMO answers it with two primitive calls. This file shows both versions of the t
   * get_tls_state_api  - a thin wrapper whose description is TraCI's own docstring (what you get by default)
   * get_signal_state   - the same calls, written the way a traffic engineer would explain the answer
 
-Run it to see both answers side by side and to test every claim the engineer's description makes:
+Run it to see both answers side by side and to test every claim the engineer's description makes (it also writes
+get_signal_state.json, which the companion page shows):
 
     python examples/get_signal_state.py
 
 The tool is not part of the toolkit's menu yet. WRITING_TOOLS.md, section 8, shows the four steps to add it.
 """
-import os, sys
+import os, sys, json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import traci
 import sumo_agent_tools as T
@@ -83,6 +84,10 @@ def check():
     text = get_signal_state('Fowler & McKinley')
     print('API wrapper returns:  ', repr(raw))
     print('Engineer tool returns:\n' + text + '\n')
+    record = {'intersection': 'Fowler & McKinley', 'time_s': traci.simulation.getTime(), 'tls_id': tls_id,
+              'api_description': get_tls_state_api.__doc__, 'api_result': raw,
+              'engineer_description': ' '.join(get_signal_state.__doc__.split()), 'engineer_result': text,
+              'schema': SCHEMA, 'early_result': early}
 
     # every signal letter is reported under some approach and movement
     links = T._links(tls_id)
@@ -105,6 +110,8 @@ def check():
     # warm-up warning before 900 s, none inside the analysis hour
     assert 'WARM-UP WARNING' in early and 'WARNING' not in text, (early[:120], text[:120])
     T.stop_live()
+    json.dump(record, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'get_signal_state.json'), 'w'),
+              indent=1)                                              # the companion page shows this run
     # no simulation: the same instructive error as every live tool
     assert T.run_tool('get_approach_state', {'intersection': 'Fowler & McKinley', 'approach': 'WB'}).startswith(
         'Error: No live simulation is running')

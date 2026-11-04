@@ -5,7 +5,8 @@ you will be able to take something you know, such as how to read a queue, check 
 and turn it into a tool that an AI model can call and use correctly.
 
 You do not need to know how language models work inside. You need your traffic knowledge, the Python you already use
-with TraCI, and a few new ideas, all explained below.
+with TraCI, and a few new ideas, all explained below. The companion page (`docs/index.html`, tab 10, "Write your own")
+shows the same material with figures.
 
 ## 1. Why the AI needs you
 

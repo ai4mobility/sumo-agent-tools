@@ -4,8 +4,9 @@
     python build_companion.py                      # course folder: ../SUMO_Tools_for_Agents_Companion.html
 
 
-Every number on the page comes from numbers_sumo_tools.json (experiments.py) or claims_result.json
-(test_claims.py); placeholders look like {{e1.naive_mean_mph|0}}. The build fails if any placeholder is left,
+Every number on the page comes from numbers_sumo_tools.json (experiments.py), claims_result.json
+(test_claims.py), examples/get_signal_state.json (examples/get_signal_state.py) or the recorded runs in walkthrough/
+(tab 10); placeholders look like {{e1.naive_mean_mph|0}}. The build fails if any placeholder is left,
 or if a placeholder points at a missing number.
 
     python build_companion.py
@@ -185,13 +186,47 @@ def fowler_map():
     return '\n'.join(out)
 
 
+# ---------------------------------------------------------------- tab 10: the worked example and the recorded runs
+SIG = json.load(open(os.path.join(HERE, 'examples', 'get_signal_state.json')))       # examples/get_signal_state.py
+RAW = json.load(open(os.path.join(HERE, 'walkthrough', 'raw_vs_result.json')))       # walkthrough/raw_vs_result.py
+RUNS = json.load(open(os.path.join(HERE, 'walkthrough', 'walkthrough_numbers.json')))
+GUI_LOG = open(os.path.join(HERE, 'walkthrough', 'qwen3_run_gui_log.txt')).read().split('\n')
+assert RAW['same_as_run_G_round_8'], 'raw_vs_result.json no longer matches run G'
+DESCS = {t['name']: t['description'] for t in T.TOOLS}
+D.update(sig_time=SIG['time_s'], words_approach=len(DESCS['get_approach_state'].split()),
+         words_list=len(DESCS['list_intersections'].split()),
+         gui_calls=sum(l.startswith('{"name": "start_live", "arguments": {"gui": true') for l in GUI_LOG),
+         raw_lanes=RAW['summary']['lanes'], raw_empty=RAW['summary']['empty_lanes'],
+         raw_vehicles=RAW['summary']['vehicles'], raw_limit=RAW['summary']['empty_lanes_reporting_their_speed_limit'],
+         raw_time=RAW['raw_traci']['simulation.getTime()'])
+D['q_m'] = float(re.search(r'back of queue ([\d,]+) ft', RAW['tool_result']).group(1).replace(',', '')) * FT
+_full = [l for l in RAW['raw_traci']['lanes'] if l['vehicles']]
+_pos = ' | '.join(', '.join(f"{v['vehicle.getLanePosition()']:.1f}" for v in l['vehicles'][:3]) +
+                  (f", ... {l['vehicles'][-1]['vehicle.getLanePosition()']:.1f}" if len(l['vehicles']) > 3 else '')
+                  for l in _full)
+_empty_speeds = sorted({round(l['lane.getLastStepMeanSpeed()'], 2) for l in RAW['raw_traci']['lanes'] if not l['vehicles']})
+_lens = {v['vehicle.getLength()'] for l in _full for v in l['vehicles']}
+_spd = {v['vehicle.getSpeed()'] for l in _full for v in l['vehicles']}
+_res = RAW['tool_result']
+_m = re.match(r'(.+?), (\w\w) at (\d+) s: .*?(back of queue [\d,]+ ft \(\d+ vehicles\)); (\d+ mph) space-mean speed.*?'
+              r'(No spillback: the queue fills \d+% of the storage|SPILLBACK: the queue fills \d+% of the storage)'
+              r'.*?(AFTER-PEAK WARNING)', _res)
+assert _m and len(_lens) == 1 and len(_spd) == 1, 'raw_vs_result.json changed shape'
+
+
+def quote(run, words):
+    """A phrase from a recorded answer; the build fails if the run no longer says it."""
+    assert words in RUNS[run]['answer'], (run, words)
+    return html.escape(words)
+
+
 def b64(path):
     return base64.b64encode(open(path, 'rb').read()).decode()
 
 
 # ---------------------------------------------------------------- data for the page's scripts
 FILES = ['sumo_agent_tools.py', 'api_shaped_tools.py', 'mcp_server.py', 'build_fowler.py', 'test_claims.py',
-         'experiments.py', 'gui_view.py', 'timing.py', 'README.md']
+         'experiments.py', 'gui_view.py', 'timing.py', 'README.md', 'WRITING_TOOLS.md', 'examples/get_signal_state.py']
 DATA = {
     'e1': {'series': e1['series']},
     'e2': {'series': e2['series'], 'det_m': e2b['detector_m'], 'storage_m': e2b['storage_m'],
@@ -276,6 +311,25 @@ BLOCKS = {
     'DESC_ENGINEER_COMPARE': pre(next(t['description'] for t in T.TOOLS if t['name'] == 'compare_plans')),
     'DESC_ENGINEER_CAL': pre(next(t['description'] for t in T.TOOLS if t['name'] == 'check_calibration')),
     'DIFF_ABS': f"{-N['e4']['webster_vs_existing']['mean']:.0f}",
+    'SIG_API_DESC': pre(SIG['api_description'].strip()),
+    'SIG_API_RESULT': pre(repr(SIG['api_result'])),
+    'SIG_TLS': pre(SIG['tls_id']),
+    'SIG_ENG_DESC': pre(SIG['engineer_description']),
+    'SIG_ENG_RESULT': pre(SIG['engineer_result']),
+    'RAW_POS': pre(_pos),
+    'RAW_LEN': f'{_lens.pop():.1f}',
+    'RAW_SPD': f'{_spd.pop():.1f}',
+    'RAW_SIGNAL': pre(repr(RAW['raw_traci']['trafficlight.getRedYellowGreenState()'])),
+    'RAW_NEXT': f"{RAW['raw_traci']['trafficlight.getNextSwitch()']:.1f}",
+    'RAW_EMPTY_SPEEDS': ' / '.join(f'{v:.2f}' for v in _empty_speeds),
+    'RAW_EMPTY_MPH': ' / '.join(f'{v / MPH:.0f}' for v in _empty_speeds),
+    'RES_NAME': pre(_m.group(1)), 'RES_APP': _m.group(2), 'RES_T': _m.group(3),
+    'RES_QUEUE': pre(_m.group(4)), 'RES_SPEED': _m.group(5), 'RES_VERDICT': pre(_m.group(6)),
+    'RES_VERDICT_A': pre(_m.group(6).split(' of the storage')[0]),
+    'TXT_RAW_RESULT': pre(_res),
+    'Q_RUN_A': quote('A', 'Could you please start a live simulation using the `start_live` tool?'),
+    'Q_RUN_C': quote('C', 'not spilling back during the PM peak hour'),
+    'Q_RUN_F': quote('F', 'is spilling back'),
     'DATA': json.dumps(DATA, separators=(',', ':')).replace('</', '<\\/'),
 }
 

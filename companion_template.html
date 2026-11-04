@@ -161,7 +161,8 @@
   <button data-tab="t7" role="tab">7 · Corridor study</button>
   <button data-tab="t8" role="tab">8 · Lean tools</button>
   <button data-tab="t9" role="tab">9 · Toolkit</button>
-  <button data-tab="t10" role="tab">10 · Cards &amp; check</button>
+  <button data-tab="t10" role="tab">10 · Write your own</button>
+  <button data-tab="t11" role="tab">11 · Cards &amp; check</button>
 </div></nav>
 
 <main class="wrap">
@@ -817,6 +818,198 @@ cycle ≤ 180 s</div>
 
 <!-- =============================================================== 10 -->
 <section class="page" id="t10">
+  <h2 class="sec">Write your own tool: the two texts the model reads</h2>
+  <p class="lead">The model reads two things you write: the description, before it calls a tool, and the result, after
+  the tool runs. SUMO gives you neither. It gives you numbers. This tab builds both texts on one example and gives you
+  the checks to use on your own tools. The full guide is <code>WRITING_TOOLS.md</code> in the toolkit (tab 9).</p>
+
+  <div class="card"><figure class="fig wide">
+  <svg viewBox="0 0 1200 560" role="img" aria-label="What SUMO returns, what you decide, what the model reads">
+    <defs><marker id="ar10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#003E2A"/></marker></defs>
+    <text x="600" y="36" text-anchor="middle" font-size="21" font-weight="800" fill="#003E2A">What SUMO returns, what you decide, what the model reads</text>
+    <text x="600" y="60" text-anchor="middle" font-size="13" fill="#5b6b66">One reading of Fowler Ave WB at 30th St, taken by a model at {{D.raw_time|0}} s (run G in the walkthrough)</text>
+    <!-- left: raw TraCI values -->
+    <rect x="20" y="80" width="370" height="450" rx="14" fill="#0f1c18"/>
+    <text x="40" y="112" font-size="15" font-weight="800" fill="#CFC493">What TraCI returned</text>
+    <g font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12.5">
+      <text x="40" y="146" fill="#9fb8ad">simulation.getTime()</text>
+      <text x="40" y="165" fill="#e6fff3">{{D.raw_time|1}}</text>
+      <text x="40" y="197" fill="#9fb8ad">lane.getLastStepVehicleIDs(), {{D.raw_lanes}} lanes</text>
+      <text x="40" y="216" fill="#e6fff3">{{D.raw_empty}} empty; {{D.raw_vehicles}} vehicle IDs on the rest</text>
+      <text x="40" y="248" fill="#9fb8ad">vehicle.getLanePosition()</text>
+      <text x="40" y="267" fill="#e6fff3">[[RAW_POS]]</text>
+      <text x="40" y="299" fill="#9fb8ad">vehicle.getLength() / getSpeed()</text>
+      <text x="40" y="318" fill="#e6fff3">[[RAW_LEN]] / [[RAW_SPD]] for every vehicle</text>
+      <text x="40" y="350" fill="#9fb8ad">trafficlight.getRedYellowGreenState()</text>
+      <text x="40" y="369" fill="#e6fff3">[[RAW_SIGNAL]]</text>
+      <text x="40" y="401" fill="#9fb8ad">trafficlight.getNextSwitch()</text>
+      <text x="40" y="420" fill="#e6fff3">[[RAW_NEXT]]</text>
+      <text x="40" y="452" fill="#9fb8ad">lane.getLastStepMeanSpeed(), empty lanes</text>
+      <text x="40" y="471" fill="#e6fff3">[[RAW_EMPTY_SPEEDS]]</text>
+    </g>
+    <text x="40" y="510" font-size="12.5" fill="#CFC493">numbers with no names, units or context</text>
+    <!-- middle: decisions -->
+    <text x="600" y="112" text-anchor="middle" font-size="15" font-weight="800" fill="#003E2A">What you decide</text>
+    <g font-size="14">
+      <rect x="430" y="128" width="340" height="64" rx="10" fill="#fff" stroke="#006747" stroke-width="1.6"/>
+      <circle cx="455" cy="160" r="13" fill="#006747"/><text x="455" y="165" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">1</text>
+      <text x="480" y="154" font-weight="700" fill="#003E2A">Name it the way engineers do</text>
+      <text x="480" y="174" font-size="12.5" fill="#5b6b66">cross streets and EB/WB, from sumolib</text>
+      <rect x="430" y="206" width="340" height="64" rx="10" fill="#fff" stroke="#006747" stroke-width="1.6"/>
+      <circle cx="455" cy="238" r="13" fill="#006747"/><text x="455" y="243" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">2</text>
+      <text x="480" y="232" font-weight="700" fill="#003E2A">Apply your definition</text>
+      <text x="480" y="252" font-size="12.5" fill="#5b6b66">queued: under 5 km/h, within 10 m</text>
+      <rect x="430" y="284" width="340" height="64" rx="10" fill="#fff" stroke="#006747" stroke-width="1.6"/>
+      <circle cx="455" cy="316" r="13" fill="#006747"/><text x="455" y="321" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">3</text>
+      <text x="480" y="310" font-weight="700" fill="#003E2A">Convert the units</text>
+      <text x="480" y="330" font-size="12.5" fill="#5b6b66">m to ft, m/s to mph, clock to countdown</text>
+      <rect x="430" y="362" width="340" height="64" rx="10" fill="#fff" stroke="#006747" stroke-width="1.6"/>
+      <circle cx="455" cy="394" r="13" fill="#006747"/><text x="455" y="399" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">4</text>
+      <text x="480" y="388" font-weight="700" fill="#003E2A">State the verdict either way</text>
+      <text x="480" y="408" font-size="12.5" fill="#5b6b66">share of storage against the 85% flag</text>
+      <rect x="430" y="440" width="340" height="64" rx="10" fill="#fff" stroke="#006747" stroke-width="1.6"/>
+      <circle cx="455" cy="472" r="13" fill="#006747"/><text x="455" y="477" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">5</text>
+      <text x="480" y="466" font-weight="700" fill="#003E2A">Say when it cannot answer</text>
+      <text x="480" y="486" font-size="12.5" fill="#5b6b66">{{D.raw_time|,0}} s is after the analysis hour</text>
+    </g>
+    <g stroke="#003E2A" stroke-width="2.2" fill="none" marker-end="url(#ar10)">
+      <line x1="392" y1="316" x2="426" y2="316"/><line x1="772" y1="316" x2="806" y2="316"/>
+    </g>
+    <!-- right: the result -->
+    <rect x="810" y="80" width="370" height="450" rx="14" fill="#fff" stroke="#003E2A" stroke-width="2.2"/>
+    <text x="830" y="112" font-size="15" font-weight="800" fill="#003E2A">What the model reads</text>
+    <g font-size="13.5" fill="#1c2422">
+      <circle cx="843" cy="154" r="10" fill="#CFC493"/><text x="843" y="158" text-anchor="middle" font-size="11.5" font-weight="800" fill="#003E2A">1</text>
+      <text x="862" y="159">[[RES_NAME]]</text>
+      <text x="862" y="178">[[RES_APP]] at [[RES_T]] s:</text>
+      <circle cx="843" cy="226" r="10" fill="#CFC493"/><text x="843" y="230" text-anchor="middle" font-size="11.5" font-weight="800" fill="#003E2A">2</text>
+      <text x="862" y="231">[[RES_QUEUE]];</text>
+      <circle cx="843" cy="252" r="10" fill="#CFC493"/><text x="843" y="256" text-anchor="middle" font-size="11.5" font-weight="800" fill="#003E2A">3</text>
+      <text x="862" y="257">[[RES_SPEED]] space-mean speed</text>
+      <circle cx="843" cy="314" r="10" fill="#CFC493"/><text x="843" y="318" text-anchor="middle" font-size="11.5" font-weight="800" fill="#003E2A">4</text>
+      <text x="862" y="319" font-weight="700">[[RES_VERDICT_A]]</text>
+      <text x="862" y="338">of the storage (the flag is set at 85%).</text>
+      <circle cx="843" cy="392" r="10" fill="#CFC493"/><text x="843" y="396" text-anchor="middle" font-size="11.5" font-weight="800" fill="#003E2A">5</text>
+      <text x="862" y="397" font-weight="700" fill="#c0392b">AFTER-PEAK WARNING:</text>
+      <text x="862" y="416">this reading says nothing</text>
+      <text x="862" y="435">about the peak. Restart and read</text>
+      <text x="862" y="454">between 900 and 4,500 s.</text>
+    </g>
+    <text x="830" y="508" font-size="12.5" fill="#5b6b66">shortened; the full text is below the figure</text>
+    <text x="600" y="552" text-anchor="middle" font-size="14" fill="#5b6b66">The model sees only the right-hand column. Every line in it is a decision a traffic engineer made.</text>
+  </svg>
+  <figcaption>Left: everything TraCI returned for one reading (<code>walkthrough/raw_vs_result.py</code> records it).
+  An empty lane's "mean speed" ([[RAW_EMPTY_SPEEDS]] m/s) is its speed limit, [[RAW_EMPTY_MPH]] mph; positions are meters
+  from the start of each lane, not from the stop line. Right: what <code>get_approach_state</code> returned from the same values.</figcaption>
+  </figure>
+  <pre class="out">[[TXT_RAW_RESULT]]</pre>
+  </div>
+
+  <h3>One TraCI call, two tools</h3>
+  <p>The question: <i>"What is the signal at Fowler &amp; McKinley showing right now, and when does it change?"</i> Both
+  tools below make the same TraCI call at {{D.sig_time|,0}} s. The code is in <code>examples/get_signal_state.py</code>;
+  run it to see both answers and test every claim the second one makes.</p>
+  <div class="grid2">
+    <div class="desc api"><div class="who"><i></i>API wrapper: TraCI's own docstring</div>
+      <p class="d">[[SIG_API_DESC]]</p>
+      <div class="small"><b>Returns</b></div><pre class="out">[[SIG_API_RESULT]]</pre>
+      <p class="small">To call it, the model needs the id <code style="word-break:break-all">[[SIG_TLS]]</code>. To read the answer, it needs the
+      network file, which says which letter is which movement. The docstring calls a string a "tuple" and has a typo.
+      Nothing says when the signal changes.</p></div>
+    <div class="desc eng"><div class="who"><i></i>Engineer's tool</div>
+      <p class="d">[[SIG_ENG_DESC]]</p>
+      <div class="small"><b>Returns</b></div><pre class="out">[[SIG_ENG_RESULT]]</pre></div>
+  </div>
+  <h4>Seven decisions turned the first into the second</h4>
+  <ol class="tight">
+    <li><b>Start from the engineer's question, not the API function.</b> One question needs four primitives: the signal
+    string, the next switch, the clock, and the network's connections.</li>
+    <li><b>Take inputs the way people name things.</b> Cross streets go in; sumolib finds the id inside the tool.</li>
+    <li><b>Translate codes and units.</b> Each letter becomes a movement (from the network's connections) and words a
+    driver would understand (from <a href="https://sumo.dlr.de/docs/Simulation/Traffic_Lights.html#signal_state_definitions" target="_blank" rel="noopener">SUMO's table of signal states</a>);
+    the clock time of the next switch becomes a countdown.</li>
+    <li><b>Write the result for a reader who cannot see SUMO</b>, with the warm-up or after-peak warning outside 900–4,500 s.</li>
+    <li><b>Write the description:</b> what it does, the input with an example, what each word in the result means, units,
+    that it only reads, its caveats, and the tool to use instead for the whole cycle.</li>
+    <li><b>Write the input rules</b> (the schema): one text input, described with an example.</li>
+    <li><b>Test every claim.</b> The example checks five, and GitHub runs it with every change to the repository.</li>
+  </ol>
+
+  <h3>Writing the description</h3>
+  <p>Answer the seven questions at the end of tab 9. Three habits help:</p>
+  <ul class="tight">
+    <li><b>Write only what you test.</b> A sentence the tests do not check is a guess, and the model will treat it as a fact.</li>
+    <li><b>Spend words on knowledge, not politeness.</b> <code>get_approach_state</code>'s description is the longest in the
+    toolkit ({{D.words_approach}} words) because it carries the queue rule, the spillback flag and the warnings;
+    <code>list_intersections</code> needs {{D.words_list}}.</li>
+    <li><b>Use the names engineers use:</b> cross streets, EB/WB/NB/SB, mph, ft, veh/mi/lane. Never make the model handle SUMO ids.</li>
+  </ul>
+
+  <h3>Writing the result</h3>
+  <p>You can read bare values because the context is in your head: you wrote the call, you know the units, and you
+  know what time it is in the simulation. The model has only the text. Five checks before you share a tool, each
+  with what a model did when the result left it out (the recorded runs in <code>walkthrough/</code>):</p>
+  <div class="card scrollx"><table class="t"><thead><tr><th>Check</th><th>Raw value or first version</th><th>What the toolkit returns now</th><th>What a model did without it</th></tr></thead><tbody>
+    <tr><td>What each number measures, in what units</td><td><code>[[RAW_SPD]]</code>, a lane position of <code>6.6</code></td><td>"[[RES_QUEUE]]", "[[RES_SPEED]]"</td><td>No run needed: averaging lane speeds gave {{e1.naive_mean_mph|0}} mph while the vehicles averaged {{e1.true_mean_mph|0}} mph (tab 3)</td></tr>
+    <tr><td>The verdict, even when nothing is wrong</td><td>No flag below 85%</td><td>"[[RES_VERDICT]]"</td><td>Run F answered "[[Q_RUN_F]]" for a queue that filled 9% of its storage</td></tr>
+    <tr><td>Whether the reading can answer the question</td><td>a clock reading of <code>0.0</code></td><td>"WARM-UP WARNING: ... says nothing about the peak"</td><td>Run C read the queue at 0 s, on an empty network, and answered "[[Q_RUN_C]]"</td></tr>
+    <tr><td>Who can fix a failure, and what to do next</td><td>"No live simulation. Call start_live first."</td><td>"You can start one yourself: call start_live (no inputs needed), then advance past the 900-s warm-up..."</td><td>Run A wrote: "[[Q_RUN_A]]"</td></tr>
+    <tr><td>Short enough to read again at every step</td><td>{{e7.corridor_calls_api}} lane calls, {{e7.corridor_dump_tokens|,0}} tokens</td><td>one corridor call, {{e7.corridor_tool_tokens}} tokens</td><td>Every result is read again at every later step (tab 8)</td></tr>
+  </tbody></table></div>
+  <div class="callout sig"><b>Description or result?</b> Rules that never change (the queue definition, the 85% flag,
+  input units) go in the description. Anything that depends on the state of the simulation (the clock, an empty block,
+  a teleport, a failure) can only go in the result, because only the result knows the state.</div>
+  <div class="grid2">
+    <div class="callout"><b>Text or JSON?</b> Either works, if it explains itself. A result such as
+    <code>{"back_of_queue_ft": 274, "verdict": "no spillback", "period": "after peak"}</code> carries the same knowledge.
+    The toolkit returns short sentences because they read like a briefing.</div>
+    <div class="callout"><b>Evidence, not decisions.</b> "Advance to a time between 900 and 4,500 s" helps the model get
+    good evidence. "Retime this signal" is the engineer's call, and does not belong in a result.</div>
+  </div>
+  <div class="callout warn"><b>A good result is not a guarantee.</b> In run G the model read the AFTER-PEAK WARNING,
+  mentioned it, and answered anyway. The harness and the engineer still check the evidence.</div>
+
+  <h4>Errors are results too</h4>
+  <div class="scrollx"><table class="t"><thead><tr><th>First version</th><th>What the model did</th><th>Now</th></tr></thead><tbody>
+    <tr><td>"No live simulation. Call start_live first."</td><td>Asked the engineer to start SUMO (run A)</td><td>"No live simulation is running. You can start one yourself: call start_live (no inputs needed), then advance past the 900-s warm-up, then call this tool again."</td></tr>
+    <tr><td>TraCI's own "Could not connect in 1 tries"</td><td>Asked for the same sumo-gui window {{D.gui_calls}} times on a computer with no screen</td><td>"sumo-gui needs a screen to open its window, and this computer has none. Call start_live again with gui=false..."</td></tr>
+  </tbody></table></div>
+  <p class="small">Start an error with <code>Error:</code>, <code>Rejected:</code> or <code>Blocked:</code>, and say what went wrong,
+  who can fix it, and what to do next. The MCP server marks these as errors for the app.</p>
+
+  <h3>Add your tool, then watch a model use it</h3>
+  <ol class="tight">
+    <li>Put the function in <code>sumo_agent_tools.py</code>. Its docstring is the description.</li>
+    <li>Add its input rules to <code>SCHEMAS</code>; if it only reads, add its name to <code>READ_ONLY</code>.</li>
+    <li>Add a <code>@claim</code> test for each sentence of the description to <code>test_claims.py</code>, and run it.</li>
+    <li>Try it by hand, with a small model on your laptop (<code>walkthrough/qwen_harness.py</code>: put the tool in
+    <code>MENU</code> and your question in <code>QUESTION</code>), or in Claude Code, which gets every tool through <code>mcp_server.py</code>.</li>
+    <li>Read what the model did, and fix the step that failed:</li>
+  </ol>
+  <div class="card scrollx"><table class="t"><thead><tr><th>What you see</th><th>Where to fix it</th></tr></thead><tbody>
+    <tr><td>The model never calls your tool</td><td>The description: say what the tool is for and when to use it</td></tr>
+    <tr><td>It sends the wrong inputs (ids, wrong units, a clock time for a duration)</td><td>The input descriptions and ranges, and an error that says what to send</td></tr>
+    <tr><td>It calls tools in the wrong order, such as reading before starting SUMO</td><td>An error that says what to do first</td></tr>
+    <tr><td>It asks a person to do something it could do itself</td><td>An error that says "you can do it yourself"</td></tr>
+    <tr><td>It repeats the same failing call</td><td>An error that says something it can act on</td></tr>
+    <tr><td>It concludes something the numbers do not support</td><td>The result: the verdict either way, and a warning when the reading cannot answer</td></tr>
+    <tr><td>It answers from weak evidence (one snapshot, the wrong hour)</td><td>The result says how much evidence it is; or a new tool measures over the period</td></tr>
+  </tbody></table></div>
+  <p>Fix the tool first: a better tool helps every model and every harness.</p>
+
+  <h3>Ideas for your first tool</h3>
+  <ul class="tight">
+    <li><b>Worst queue during the analysis hour:</b> read the back of queue at the end of every red; report the worst and when.</li>
+    <li><b>Level of service for an approach:</b> control delay over the hour, the HCM level, and the vehicles and seeds behind it.</li>
+    <li><b>Travel-time reliability:</b> median and 95th-percentile corridor travel time from the vehicles that drove it, with how many trips.</li>
+    <li><b>An incident:</b> close a lane for a period; report the change in queue and travel time against the same seeds without it.</li>
+    <li><b>Detector health:</b> compare a detector's counts with the field counts at its station, and say whether to trust it.</li>
+  </ul>
+  <p class="small">The traffic knowledge is the hard part of each one. The Python is the easy part.</p>
+</section>
+
+<!-- =============================================================== 11 -->
+<section class="page" id="t11">
   <h2 class="sec">Fit card, lever card, and check yourself</h2>
   <div class="fitcard"><div class="head">Fit card · Wrapping a traffic simulator as tools for an AI agent</div>
     <div class="row"><div class="k">Idea in one sentence</div><div>Give the model a short menu of simulator functions, each with a description that says what it returns, in what units, when the answer is undefined, and what it refuses.</div></div>
@@ -851,7 +1044,9 @@ cycle ≤ 180 s</div>
     <details><summary>Show an answer</summary><div>(1) Timing minimums: pedestrian walk + clearance, minimum greens, ITE yellows. (2) Evidence: several seeds, paired, with a confidence interval. (3) Calibration: was the demand checked against counts and signed off? Here the first check alone cut the gain to {{D.chk_cut|0}}% (tab 5).</div></details></div>
   <div class="q"><b>4.</b> Your calibration passes GEH at 15 of 16 stations. The agent asks to start comparing plans. What should happen next, and who does it?
     <details><summary>Show an answer</summary><div>An engineer reviews the worst stations (is the one failure explainable?) and the network, then signs off. The agent cannot approve its own calibration; in the toolkit, approval is a command for people, not a tool (tab 6).</div></details></div>
-  <div class="q"><b>5. Lever question.</b> Pick one tool your capstone agent will need. Which definition, unit or rule from traffic engineering would you write into it, and how would you test that it helps?
+  <div class="q"><b>5.</b> A classmate's queue tool returns <code>{"q": {{D.q_m|1}}, "s": 0}</code>. Rewrite it as a result a model can use without seeing SUMO.
+    <details><summary>Show an answer</summary><div>Name each number and give units, state the verdict either way, and say when the reading cannot answer the question. The toolkit's version of one such reading: "[[RES_QUEUE]]; [[RES_SPEED]] space-mean speed ... [[RES_VERDICT]] (the flag is set at 85%)", followed by an AFTER-PEAK WARNING because it was read at {{D.raw_time|,0}} s (tab 10).</div></details></div>
+  <div class="q"><b>6. Lever question.</b> Pick one tool your capstone agent will need. Which definition, unit or rule from traffic engineering would you write into it, and how would you test that it helps?
     <details><summary>Show one way to answer</summary><div>Example: a dashcam damage tool should state the minimum crack width it detects and its units, and refuse frames with no GPS fix. Test: run the same agent task with and without those lines in the description and the check in the body, over several runs, and count wrong reports.</div></details></div>
 
   <h3>Sources</h3>
@@ -880,7 +1075,8 @@ cycle ≤ 180 s</div>
 </section>
 </main>
 <footer><div class="wrap">AI for Mobility (CGN 6933), University of South Florida · Every number on this page comes from
-<code>experiments.py</code> and <code>test_claims.py</code> in the toolkit, run on the Fowler scenario (real network, synthetic demand).</div></footer>
+<code>experiments.py</code>, <code>test_claims.py</code>, <code>examples/get_signal_state.py</code> and the recorded runs in
+<code>walkthrough/</code>, all in the toolkit and run on the Fowler scenario (real network, synthetic demand).</div></footer>
 
 <script>
 const DATA = [[DATA]];
@@ -1079,7 +1275,9 @@ const FILEINFO={
  'experiments.py':'Produces every number on this page.',
  'gui_view.py':'The TMC view: runs sumo-gui and saves screenshots.',
  'timing.py':'Run times with and without the window.',
- 'README.md':'What each file does, and the order to run them.'};
+ 'README.md':'What each file does, and the order to run them.',
+ 'WRITING_TOOLS.md':'The guide for writing your own tool (tab 10), for engineers new to AI.',
+ 'examples/get_signal_state.py':'Tab 10\'s worked example: one TraCI call as an API wrapper and as an engineer\'s tool, with tests.'};
 function renderFiles(){
   const box=document.getElementById('files'); box.innerHTML='';
   Object.keys(FILEINFO).forEach(f=>{ if(!(f in DATA.files)) return;

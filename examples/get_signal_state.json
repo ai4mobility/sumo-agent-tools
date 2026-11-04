@@ -1,0 +1,22 @@
+{
+ "intersection": "Fowler & McKinley",
+ "time_s": 1805.0,
+ "tls_id": "joinedS_6067633741_cluster_365779835_511131072_511131148_97802393",
+ "api_description": "getRedYellowGreenState(string) -> string\n\nReturns the named tl's state as a tuple of light definitions from\nrugGyYoO, for red, yed-yellow, green, yellow, off, where lower case letters mean that the stream\nhas to decelerate.",
+ "api_result": "rGGGGGGrrrrrrGGG",
+ "engineer_description": "What the signal at one intersection shows right now, movement by movement, and how long until it changes. intersection: cross streets, e.g. \"Fowler & McKinley\" (see list_intersections). Returns, for each approach (EB, WB, NB or SB, the direction of travel), the indication of its through, left and right movements: green; green but yield to conflicting traffic (a permissive left, for example); stop, then go if clear (right turn on red); yellow; or red. Then the seconds until the signal changes (a countdown, not a clock time). Reads only: time does not pass and nothing changes. A reading outside the analysis hour (900-4500 s) carries a WARM-UP or AFTER-PEAK warning. Use get_signal_plan for the whole cycle; this tool shows one moment of it.",
+ "engineer_result": "E Fowler Ave & McKinley Dr at 1805 s: the signal changes in 30 s.\n  NB: through red; left red; right red\n  EB: through green\n  WB: through green; left red",
+ "schema": {
+  "type": "object",
+  "properties": {
+   "intersection": {
+    "type": "string",
+    "description": "Cross streets, e.g. \"Fowler & McKinley\" (see list_intersections)"
+   }
+  },
+  "required": [
+   "intersection"
+  ]
+ },
+ "early_result": "E Fowler Ave & McKinley Dr at 0 s: the signal changes in 35 s. WARM-UP WARNING: 0 s is before the analysis hour (900-4500 s) and the network is still filling, so this reading says nothing about the peak. Call advance to reach 900 s or later, then read again.\n  NB: through red; left red; right red\n  EB: through green\n  WB: through green; left red"
+}
