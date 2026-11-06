@@ -1,13 +1,8 @@
 # Knowledge card: lane_use
 
 *This card describes the template's example tool. In your copy, replace every section with your own tools,
-rules and tests. The checker reads the section titles, so keep them.*
-
-## Who it is for
-
-A signal timing engineer checking a timing plan in the Fowler Ave model, who wants to see which lane is holding
-the queue at an approach (the left-turn bay or the through lanes) before changing a split. They read it at the end
-of red, several times during the analysis hour.
+rules and tests. The checker reads the section titles, so keep them. Who the tools are for, and why they are
+designed the way they are, goes in DESIGN.md.*
 
 ## Rules
 

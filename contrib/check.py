@@ -4,8 +4,8 @@
     python contrib/check.py --all                              # every folder in contrib/
 
 A folder passes when:
-  1. it is named after your GitHub username and has the five files: tools.py, test_tools.py, server.py,
-     KNOWLEDGE.md, AGENT_RUN.md
+  1. it is named after your GitHub username and has the six files: DESIGN.md, KNOWLEDGE.md, tools.py,
+     test_tools.py, server.py, AGENT_RUN.md
   2. tools.py lists at least two new tools in TOOLS, each with type hints, '-> str', and a description of at least
      40 words that says whether the tool only reads ('Read-only.') or what it changes; READ_ONLY agrees; and a
      *_plain function (not in TOOLS) is the baseline for at least one of them
@@ -18,6 +18,10 @@ A folder passes when:
      your tools, question 2 calls two or more tools; each has your grade; and one fix, with transcripts before and
      after
   7. nothing in the folder looks like a key or a password, and no file is larger than 1 MB
+  8. DESIGN.md, in your own words, answers its four questions: (1) the task, with at least two questions as the
+     person would ask them; (2) the tools and why each is useful; (3) how each description helps the model pick the
+     tool, quoting each tool's description; (4) how the results help the model read them, quoting a result one of
+     your tools returned in your transcripts
 
 The workflow also checks that a pull request changes one folder, contrib/<the author's username>/, and nothing else:
     python contrib/check.py --changed <base commit> --author <github-username>
@@ -26,7 +30,8 @@ import os, re, sys, ast, json, asyncio, importlib, importlib.util, inspect, trac
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-FILES = ['tools.py', 'test_tools.py', 'server.py', 'KNOWLEDGE.md', 'AGENT_RUN.md']
+FILES = ['DESIGN.md', 'KNOWLEDGE.md', 'tools.py', 'test_tools.py', 'server.py', 'AGENT_RUN.md']
+DESIGN = [('The task', 80), ('The tools', 100), ('The descriptions', 100), ('The results', 100)]
 BASES = {'sumo_agent_tools.py': 'sumo_agent_tools', 'wzdx_tools.py': 'wzdx_tools'}
 PLACEHOLDER = re.compile(r'\bTODO\b|<your|<replace', re.I)
 SECRET = re.compile(r'sk-ant-[A-Za-z0-9_-]{10,}|sk-[A-Za-z0-9]{32,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}'
@@ -68,8 +73,31 @@ def load(path, name):
 
 
 def md_section(text, title):
-    m = re.search(r'^##\s+' + re.escape(title) + r'[^\n]*\n(.*?)(?=^##\s|\Z)', text, re.M | re.S)
+    """The body of '## <title>' (or '## 2. <title>'), without HTML comments."""
+    text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
+    m = re.search(r'^##\s+(?:\d+\.\s*)?' + re.escape(title) + r'[^\n]*\n(.*?)(?=^##\s|\Z)', text, re.M | re.S)
     return m.group(1).strip() if m else None
+
+
+QUOTE = re.compile(r'"([^"]{0,600})"|\u201c([^\u201d]{0,600})\u201d|`([^`]{0,600})`')     # pairs in order
+norm = lambda t: re.sub(r'\s+', ' ', t).strip().lower()
+
+
+def quotes(text):
+    """Quoted phrases of four words or more; an ellipsis splits a quote into parts that must each be found."""
+    out = []
+    for m in QUOTE.finditer(text or ''):
+        q = next((g for g in m.groups() if g is not None), '')
+        parts = [norm(p).strip(' .,;:') for p in re.split(r'\.\.\.|\u2026', q)]
+        parts = [p for p in parts if p]
+        if parts and len(' '.join(parts).split()) >= 4:
+            out.append(parts)
+    return out
+
+
+def found(parts, text):
+    t = norm(text)
+    return all(p in t for p in parts)
 
 
 def check_folder(folder):
@@ -81,7 +109,7 @@ def check_folder(folder):
         return res
     ok(re.fullmatch(r'[a-z0-9][a-z0-9-]*', name), 'the folder is named after your GitHub username, in lowercase', name)
     missing = [f for f in FILES if not os.path.exists(os.path.join(folder, f))]
-    if not ok(not missing, 'the five files are there', 'missing: ' + ', '.join(missing) if missing else ''):
+    if not ok(not missing, 'the six files are there', 'missing: ' + ', '.join(missing) if missing else ''):
         return res
     # 7. hygiene
     big, leaks = [], []
@@ -145,7 +173,7 @@ def check_folder(folder):
     nosrc = [i + 1 for i, c in enumerate(cells) if len(c) < 5 or len(c[2]) < 3]
     ok(rows and not nosrc, 'KNOWLEDGE.md: every rule has a source', ('rules without one: ' + ', '.join(map(str, nosrc))) if nosrc else '')
     ok(not PLACEHOLDER.search(rules_md), 'KNOWLEDGE.md: no TODO left in the Rules table')
-    for sec in ('Who it is for', 'Plain vs. yours', 'What the data cannot tell', 'AI use'):
+    for sec in ('Plain vs. yours', 'What the data cannot tell', 'AI use'):
         body = md_section(K, sec)
         ok(body and len(body.split()) >= 12 and not PLACEHOLDER.search(body), f'KNOWLEDGE.md: "{sec}" filled in')
     # 4. tests
@@ -220,6 +248,35 @@ def check_folder(folder):
     ok(len(fix.split()) >= 40 and not PLACEHOLDER.search(fix) and len(fl) >= 2
        and all(os.path.exists(os.path.join(folder, l)) for l in fl),
        'AGENT_RUN.md: "One fix I made" filled in, linking the transcripts before and after', ', '.join(fl))
+    # 8. DESIGN.md: the four questions, in your own words, tied to your real descriptions and results
+    Ds = open(os.path.join(folder, 'DESIGN.md'), encoding='utf-8').read()
+    ok("template's example tool" not in Ds, "DESIGN.md is yours, not the template's")
+    body = {t: md_section(Ds, t) or '' for t, _ in DESIGN}
+    for i, (t, n_min) in enumerate(DESIGN, 1):
+        words = len(body[t].split())
+        ok(words >= n_min and not PLACEHOLDER.search(body[t]),
+           f'DESIGN.md, section {i} "{t}": answered (at least {n_min} words)', f'{words} words')
+    ok(body['The task'].count('?') >= 2, 'DESIGN.md, section 1: at least two questions as the person would ask them')
+    for i, t in ((2, 'The tools'), (3, 'The descriptions'), (4, 'The results')):
+        missing_n = [n for n in names if n not in body[t]]
+        ok(not missing_n, f'DESIGN.md, section {i}: names each of your tools', ', '.join(missing_n))
+    q3 = quotes(body['The descriptions'])
+    unquoted = [t.__name__ for t in tools if not any(found(q, inspect.getdoc(t) or '') for q in q3)]
+    ok(not unquoted, "DESIGN.md, section 3: quotes each tool's description (a phrase of 4+ words, in quotes, "
+       'word for word)', ('no quote from: ' + ', '.join(unquoted)) if unquoted else '')
+    results = []
+    for f in sorted(os.listdir(os.path.join(folder, 'runs'))) if os.path.isdir(os.path.join(folder, 'runs')) else []:
+        if f.endswith('.json'):
+            try:
+                r = json.load(open(os.path.join(folder, 'runs', f), encoding='utf-8'))
+            except Exception:
+                continue
+            if r.get('harness') == 'agent_loop.py':
+                results += [c.get('result') or '' for s in r.get('steps', []) for c in s.get('calls', [])
+                            if c.get('name') in names]
+    ok(any(found(q, res) for q in quotes(body['The results']) for res in results),
+       'DESIGN.md, section 4: quotes a result one of your tools returned in your transcripts (4+ words, in quotes, '
+       'word for word)', '' if results else 'no result from your tools in runs/*.json yet')
     return res
 
 

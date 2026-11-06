@@ -18,7 +18,7 @@ it. Do not paste keys or personal information.*
 
 ### Question 1: one of your tools answers it
 
-**Question:** TODO (in the words the person in "Who it is for" would use)
+**Question:** TODO (in the words of the person in section 1 of DESIGN.md)
 
 **Transcript:** [runs/q1.md](runs/q1.md)
 

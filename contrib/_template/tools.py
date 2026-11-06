@@ -53,8 +53,8 @@ def lane_use(intersection: str, approach: str) -> str:
     through, right-turn, or shared (for example shared through-right). SUMO's own lane index runs the other way (0 is
     the curb lane). For each lane: vehicles, stopped vehicles (below 0.1 m/s, SUMO's halting rule) and space-mean
     speed in mph, or "no vehicles (speed not measured)" on an empty lane, where SUMO's lane speed would report the
-    speed limit. A lane that serves no movement at the stop line ends there; it is listed but not counted as an
-    approach lane. The reading covers only the edge at the stop line (its length is given), not the whole block:
+    speed limit. A lane that no connection leaves at the stop line serves no movement: it is listed but not counted
+    as an approach lane. The reading covers only the edge at the stop line (its length is given), not the whole block:
     for the queue over the block use get_approach_state. One reading is a snapshot of one moment. A reading outside
     the analysis hour (900-4500 s) carries a WARM-UP or AFTER-PEAK warning. Read-only: time does not pass."""
     T._need_live()

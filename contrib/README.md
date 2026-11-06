@@ -7,9 +7,10 @@ theirs for Assignment 6; anyone else is welcome too.
 
 | File | What it holds |
 |---|---|
+| `DESIGN.md` | **in your own words:** (1) the task you ask the agent to do; (2) the tools you designed for it, and why each is useful; (3) how each description helps the model pick the right tool; (4) how each result helps the model read it correctly |
 | `tools.py` | at least two new tools (functions with type hints, `-> str` and a description), `TOOLS`, `READ_ONLY`, and a `*_plain` baseline |
 | `test_tools.py` | a test for every rule in `KNOWLEDGE.md`, and `test_plain_vs_<tool>` |
-| `KNOWLEDGE.md` | the knowledge card: who the tools are for, each rule with its source and its test, plain vs. yours, what the data cannot tell, AI use |
+| `KNOWLEDGE.md` | the knowledge card: each rule with its source and its test, plain vs. yours, what the data cannot tell, AI use |
 | `server.py` | the MCP server: the toolkit's tools and yours, with read-only tools marked |
 | `AGENT_RUN.md` and `runs/` | three questions run through `agent_loop.py`, their transcripts, your grade of each answer, and one fix |
 
@@ -29,11 +30,12 @@ needs at least two. Keep its shape, not its content: the checker refuses the tem
    ```
    cp -r contrib/_template contrib/<your-github-username>
    ```
-3. **Write the knowledge card first.** Decide who the tools are for and write the rules in `KNOWLEDGE.md` before
-   the code: each rule is something a transportation engineer knows, with a source you can cite (a manual, a
-   standard, a paper, the data itself, or field practice you can describe).
+3. **Write down the task and the tools first,** before any code: sections 1 and 2 of `DESIGN.md`, in your own
+   words. Then write the rules in `KNOWLEDGE.md`: each rule is something a transportation engineer knows, with a
+   source you can cite (a manual, a standard, a paper, the data itself, or field practice you can describe).
 4. **Write the plain version, then yours,** in `tools.py`. [`WRITING_TOOLS.md`](../WRITING_TOOLS.md) explains the
-   description, the result, errors, and the plain version.
+   description, the result, errors, and the plain version. AI may write the code, but the words the model reads,
+   the descriptions and the result text, are your design. Explain them in sections 3 and 4 of `DESIGN.md`.
 5. **Test every rule** in `test_tools.py`, on one live simulation (demand `demand`, seed 1; the template's `at()` starts it), so everyone gets the same answers:
    ```
    python contrib/<you>/test_tools.py
@@ -47,6 +49,8 @@ needs at least two. Keep its shape, not its content: the checker refuses the tem
    python contrib/agent_loop.py contrib/<you>/server.py "your question" --name q1
    ```
    Run three questions, read the transcripts in `contrib/<you>/runs/`, make one fix, and fill in `AGENT_RUN.md`.
+   Then update sections 3 and 4 of `DESIGN.md` with what the transcripts showed. Section 3 quotes each tool's
+   description, and section 4 quotes a result your tools returned in these runs, word for word.
 8. **Check, then open the pull request:**
    ```
    python contrib/check.py contrib/<you>
@@ -66,5 +70,6 @@ needs at least two. Keep its shape, not its content: the checker refuses the tem
 - No file over 1 MB, no data you do not have the right to share, and no keys, tokens or passwords.
 - Every rule in the knowledge card has a test, and every test passes. A description is a promise to the model, and
   the model cannot check it.
-- Say in `KNOWLEDGE.md` which AI tools you used and for what. Using them is fine; the rules, the sources and the
-  expected answers in the tests must be ones you checked yourself.
+- `DESIGN.md` is your own writing, not an AI's: it is where your transportation knowledge and your thinking show.
+  AI may help with everything else. Say in `KNOWLEDGE.md` which AI tools you used and for what; the rules, the
+  sources and the expected answers in the tests must be ones you checked yourself.
