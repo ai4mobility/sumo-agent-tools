@@ -18,6 +18,22 @@ theirs for Assignment 5.1; anyone else is welcome too.
 `_template/` is a complete example of every file except `AGENT_RUN.md` and `ABLATION.md`, which you fill in from your own runs. It has one tool (`lane_use`); yours
 needs at least two. Keep its shape, not its content: the checker refuses the template's tool and test names.
 
+## New to Python or Git?
+
+- **You can work in the browser, with nothing to install.** On your fork, press Code, then Codespaces, then
+  Create codespace on main. VS Code opens with Python and Git ready, signed in to your fork. Install the smaller
+  CPU-only torch first: `pip install torch --index-url https://download.pytorch.org/whl/cpu`.
+- **Use an AI assistant as your programmer:** for the Python, the tests, the server, git and error messages. Give it
+  the real file and the full error message. Say which AI you used, and for what, in the AI use section of
+  `KNOWLEDGE.md`.
+- **Keep the transportation knowledge yours:** `DESIGN.md`; the rules and their sources; the expected values in
+  your tests and the right answers in `ablation/tasks.json`, checked in the data; your grades of the model's answers
+  and the two comparisons in `ABLATION.md`. The course page has a step-by-step table of which is which.
+- **Your AI assistant has its own instructions** in `AGENTS.md` at the repository root (also `CLAUDE.md` and
+  `.github/copilot-instructions.md`): write the code, leave the transportation thinking to you. Keep them.
+- **If git asks for a password,** GitHub will not accept your account password there: sign in through GitHub
+  Desktop (desktop.github.com), or work in a codespace.
+
 ## Steps
 
 1. **Fork and clone.** On GitHub, press Fork on https://github.com/ai4mobility/sumo-agent-tools. Then, in a terminal:
