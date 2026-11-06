@@ -10,7 +10,7 @@ cannot check it. If a sentence in a docstring is not tested in `test_claims.py`,
 
 ## Adding your tools as a contribution folder
 
-Students in AI for Mobility (Assignment 6), and anyone who wants to add tools without changing the toolkit itself:
+Students in AI for Mobility (Assignment 5.1), and anyone who wants to add tools without changing the toolkit itself:
 each contribution is one folder, `contrib/<your-github-username>/`, sent as one pull request. Follow
 [`contrib/README.md`](contrib/README.md); `contrib/_template/` is a complete example. Before you open the pull
 request, run `python contrib/check.py contrib/<your-github-username>`; the workflow runs it again.

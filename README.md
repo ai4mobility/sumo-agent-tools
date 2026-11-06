@@ -12,7 +12,7 @@ and measures the difference on a real network.
 who know SUMO but are new to AI. It builds one tool step by step, from a raw TraCI call to a tested tool a model can
 use ([`examples/get_signal_state.py`](examples/get_signal_state.py)).
 Then add yours as a folder, `contrib/<your-github-username>/`, sent as a pull request: see
-[`contrib/README.md`](contrib/README.md). Students in AI for Mobility: this is Assignment 6.
+[`contrib/README.md`](contrib/README.md). Students in AI for Mobility: this is Assignment 5.1.
 `contrib/agent_loop.py` runs a model on your computer and saves the whole tool-calling loop, MCP messages included.
 
 **Checking a whole study?** [`CHECKS.md`](CHECKS.md) explains `check_study.py`. It reads the log of a run and checks it

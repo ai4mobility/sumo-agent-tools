@@ -3,7 +3,7 @@
 Each contribution is one folder, `contrib/<your-github-username>/`, sent as one pull request. It holds tools an AI
 agent can call, written the way a transportation engineer would write them, with the tests that hold them, an MCP
 server that serves them, and the record of a model using them. Students in AI for Mobility (CGN 6933, USF) send
-theirs for Assignment 6; anyone else is welcome too.
+theirs for Assignment 5.1; anyone else is welcome too.
 
 | File | What it holds |
 |---|---|
