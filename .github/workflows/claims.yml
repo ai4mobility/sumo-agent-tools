@@ -15,6 +15,7 @@ jobs:
           python-version: "3.12"
       - run: pip install eclipse-sumo==1.28.0 traci==1.28.0 sumolib==1.28.0 pyproj rtree
       - run: python test_claims.py
+      - run: python test_check_study.py
       - run: python examples/get_signal_state.py
       - run: python contrib/_template/test_tools.py
 
