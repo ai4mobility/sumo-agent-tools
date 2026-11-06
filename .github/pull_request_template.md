@@ -18,6 +18,11 @@
 
 <!-- One or two sentences: what the plain version got wrong on the repository's data, and what yours returns. -->
 
+## The ablation
+
+<!-- The grades table from ABLATION.md (A without your tools, B your tools plain, C your tools as written), and one
+sentence on each comparison: A vs. C and B vs. C. -->
+
 ## The agent run
 
 <!-- One sentence on what you saw in the transcripts, and the fix you made. -->

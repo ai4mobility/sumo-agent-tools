@@ -13,7 +13,7 @@ Watch a model use it (contrib/agent_loop.py), or connect Claude:
     {"mcpServers": {"sumo-<you>": {"command": "python",
                                    "args": ["/full/path/to/sumo-agent-tools/contrib/<you>/server.py"]}}}
 
-What you decide here, for your own tools (contrib/check.py checks the first one):
+What you decide here, for your own tools (contrib/check.py checks the first one and the ABLATION switch):
   1. annotations: readOnlyHint for a tool that only reads; destructiveHint for one whose change cannot be undone
   2. the input schema the model sees: the toolkit publishes its own (allowed values, ranges); give yours in
      SCHEMAS in tools.py, or the SDK builds one from the type hints alone
@@ -29,17 +29,28 @@ import mcp_server as base       # the toolkit's server: its tools, as_tool(), an
 import tools as mine            # your tools.py
 from mcp.types import ToolAnnotations
 
-INSTRUCTIONS = (
-    base.INSTRUCTIONS + ' '
+# The ablation (contrib/ablation.py) sets ABLATION for each run; keep this switch working:
+#   full     your tools, your descriptions and your instructions (the default, and what Claude sees)
+#   plain    your tools, but what the model reads has no transportation knowledge: mine.PLAIN_DESCRIPTIONS for the
+#            descriptions, mine.RAW_RESULTS for the results, and none of your instructions
+#   without  the toolkit only
+ABLATION = os.environ.get('ABLATION', 'full')
+
+MY_INSTRUCTIONS = (
     # ---- your part: what your tools add, and when to use them
     'For what each lane at a stop line serves and holds, use lane_use: it names lanes by movement, from the '
     'median to the curb.')
+INSTRUCTIONS = base.INSTRUCTIONS + (' ' + MY_INSTRUCTIONS if ABLATION == 'full' else '')
 
 
 def my_tools():
+    if ABLATION == 'without':
+        return []
     out = []
     for fn in mine.TOOLS:
-        t = base.Tool.from_function(base.as_tool(fn), name=fn.__name__, description=' '.join(fn.__doc__.split()),
+        desc = mine.PLAIN_DESCRIPTIONS[fn.__name__] if ABLATION == 'plain' else ' '.join(fn.__doc__.split())
+        run = mine.RAW_RESULTS[fn.__name__] if ABLATION == 'plain' else fn
+        t = base.Tool.from_function(base.as_tool(run), name=fn.__name__, description=desc,
                                     annotations=ToolAnnotations(readOnlyHint=fn.__name__ in mine.READ_ONLY,
                                                                 destructiveHint=False),
                                     structured_output=False)

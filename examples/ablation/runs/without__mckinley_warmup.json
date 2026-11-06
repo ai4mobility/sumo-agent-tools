@@ -1,0 +1,52 @@
+{
+ "harness": "ablation.py",
+ "model": "Qwen/Qwen3-1.7B",
+ "thinking": false,
+ "seed": 1,
+ "server": "contrib/sumo-check/server.py",
+ "date": "2026-11-06T16:25:26-05:00",
+ "data": "SUMO Fowler Ave scenario (the demand and seed are in the start_live call)",
+ "device": "cpu",
+ "setup": "without",
+ "descriptions_of_your_tools": {},
+ "tools_served": [
+  "list_intersections",
+  "start_live",
+  "advance",
+  "get_approach_state",
+  "get_corridor_state",
+  "get_signal_plan",
+  "set_signal_timing",
+  "take_screenshot",
+  "stop_live",
+  "check_calibration",
+  "webster_timing",
+  "compare_plans"
+ ],
+ "instructions": "SUMO traffic simulation of the Fowler Ave corridor at USF Tampa (real OpenStreetMap network, synthetic demand). Name intersections by cross streets. Live tools need start_live first. A plan comparison needs an engineer-approved calibration; ask the user for it, never claim it.",
+ "calls": [
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Fowler & McKinley",
+    "approach": "WB"
+   },
+   "check": "ok",
+   "result": "E Fowler Ave & McKinley Dr, WB at 300 s: 3 vehicles on 818 ft of storage, 2 stopped; back of queue 20 ft (2 vehicles); 19 mph space-mean speed; 4 veh/mi/lane; through signal green, next change in 5 s. No spillback: the queue fills 2% of the storage (the flag is set at 85%). WARM-UP WARNING: 300 s is before the analysis hour (900-4500 s) and the network is still filling, so this reading says nothing about the peak. Call advance to reach 900 s or later, then read again."
+  },
+  {
+   "name": "get_corridor_state",
+   "arguments": {
+    "direction": "WB"
+   },
+   "check": "ok",
+   "result": "Fowler Ave WB at 300 s, 1.70 mi: no corridor trips finished in the last 10 min; free-flow 2.1 min. WARM-UP WARNING: 300 s is before the analysis hour (900-4500 s) and the network is still filling, so this reading says nothing about the peak. Call advance to reach 900 s or later, then read again.\n  east end -> USF Bull Run Dr: 893 ft, 2 veh, 0 stopped, 45 mph\n  USF Bull Run Dr -> Leroy Collins Blvd: 2,465 ft, 13 veh, 0 stopped, 45 mph\n  Leroy Collins Blvd -> McKinley Dr: 861 ft, 3 veh, 2 stopped, 19 mph\n  McKinley Dr -> Bruce B Downs Blvd & N 30th St: 2,973 ft, 12 veh, 3 stopped, 38 mph\n  Bruce B Downs Blvd & N 30th St -> west end: 1,805 ft, 11 veh, 0 stopped, 43 mph"
+  }
+ ],
+ "answer": "The westbound Fowler Ave corridor at 300 s shows a mix of traffic conditions. The lane-by-lane breakdown is as follows:\n\n- **East end (USF Bull Run Dr)**: 893 ft, 2 vehicles, 0 stopped, 45 mph.\n- **USF Bull Run Dr -> Leroy Collins Blvd**: 2,465 ft, 13 vehicles, 0 stopped, 45 mph.\n- **Leroy Collins Blvd -> McKinley Dr**: 861 ft, 3 vehicles, 2 stopped, 19 mph.\n- **McKinley Dr -> Bruce B Downs Blvd & N 30th St**: 2,973 ft, 12 vehicles, 3 stopped, 38 mph.\n- **Bruce B Downs Blvd & N 30th St -> west end**: 1,805 ft, 11 vehicles, 0 stopped, 43 mph.\n\n### Summary:\n- The corridor has a mix of traffic, with some congestion at the end of McKinley Dr.\n- The space-mean speed is generally high (45-43 mph), which is typical for a busy corridor.\n- The WARM-UP WARNING indicates that the network is still filling, so the current readings do not reflect the peak hour conditions.\n\n### Peak Hour Consideration:\n- The current readings are at 300 s, which is before the analysis hour (900-4500 s).\n- The network is still filling, so the traffic conditions may not be representative of the peak hour.\n- To get a better reading for the peak hour, you should call `advance` to reach 900 s or later and then read again.\n\nIf you need further analysis or adjustments to the signal timing, please let me know.",
+ "note": null,
+ "turns": 3,
+ "model_s": 156.5,
+ "question_id": "mckinley_warmup",
+ "question": "The Fowler Ave simulation is running and is at 300 s. Tell me lane by lane what westbound Fowler at McKinley looks like. Is this reading good for the peak hour?"
+}

@@ -1,0 +1,25 @@
+check_study - run C
+Question: Is Fowler Ave westbound at 30th St spilling back during the PM peak hour?
+Answer:   At 30th St, Fowler Ave westbound is not spilling back during the PM peak hour. There are no vehicles on the block, no stopped vehicles, and the queue is empty. The signal is green, and the next changeover is scheduled in approximately 29 seconds.
+The answer says: no spillback
+
+SANITY CHECKS (must pass; a failure goes back to the model)
+  FAIL    period       None of the 1 reading(s) is inside the analysis hour (900-4500 s): 0 s. The question is about the peak, so the answer rests on no peak evidence.
+  FAIL    repeats      E Fowler Ave & Bruce B Downs Blvd & N 30th St WB was read 0 times inside the hour (readings less than 5 min apart count once; needs 3). A queue at a signal rises and falls every cycle: one reading is a snapshot of one moment of one cycle.
+  N/A     ledger       No advance call to check.
+  N/A     teleports    No advance call to check.
+  PASS    physics      The approach reading is physically possible (queue within the block, density below jam, speeds below the limit, queued vehicles fit the queue length).
+  PASS    answer       The answer's "no spillback" agrees with its readings in the log (at most 0% of storage).
+  N/A     compare      The answer compares no timing plans.
+
+THEORY AND REPLAY CHECKS (must be explained; for the engineer)
+  PASS    replay       The replay (demand "demand", seed 1) reproduces the run exactly: the vehicles entering and leaving in all 0 advance intervals, and the queue in 1 reading, match the log.
+  PASS    whole hour   E Fowler Ave & Bruce B Downs Blvd & N 30th St WB: the longest queue of the 41 cycles is 2,079 ft (70% of storage) at 4,489 s; the log has no reading inside the hour. The answer's verdict ("no spillback") holds for every cycle of the hour.
+  EXPLAIN capacity     E Fowler Ave & Bruce B Downs Blvd & N 30th St WB through (4 lanes, 29 s green per cycle): demand 329 veh/h, capacity 2,533, X = 0.13; 330 veh/h got through; E Fowler Ave & Bruce B Downs Blvd & N 30th St WB left turn (1 lane, 6 s green per cycle): demand 185 veh/h, capacity 148, X = 1.25; 100 veh/h got through (HCM base saturation flow 1900 veh/h/lane, 4 s lost per phase). E Fowler Ave & Bruce B Downs Blvd & N 30th St WB left turn is over capacity (X = 1.25): its queue cannot clear and grows through the hour, so a verdict from one moment does not describe it. With a queue all hour it served 100 veh/h, which is its capacity in the simulation: 68% of the HCM value, so the simulated drivers get fewer cars through each green than HCM assumes. The answer does not say so.
+  PASS    queue growth E Fowler Ave & Bruce B Downs Blvd & N 30th St WB: queueing theory predicts the left turn queue grows (185 - 100 veh/h) x 7.5 m / 1 lane = 638 m/h; the replay's cycle-longest queue grows 556 m/h (87% of the prediction). At that rate it reaches 85% of storage 15 min after 4,489 s, after the analysis hour ends (4,500 s): no spillback in this hour, but only because the peak ended.
+
+RESULT: BLOCKED. 2 sanity check(s) failed. The harness sends this back to the model:
+  Harness check (not the engineer): your answer was not sent, because the evidence does not support it yet.
+  1. None of your readings is inside the analysis hour (900-4500 s), and the question is about the peak: yours is at 0 s. Advance to a time between 900 and 4500 s and read again.
+  2. Read E Fowler Ave & Bruce B Downs Blvd & N 30th St WB at least 3 times inside the analysis hour, at least 5 minutes apart (advance between readings): a queue at a signal rises and falls every cycle, so one reading is one moment of one cycle.
+  Fix this with the tools, then answer again.

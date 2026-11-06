@@ -1,0 +1,71 @@
+{
+ "harness": "ablation.py",
+ "model": "Qwen/Qwen3-1.7B",
+ "thinking": false,
+ "seed": 1,
+ "server": "contrib/sumo-check/server.py",
+ "date": "2026-11-06T16:30:42-05:00",
+ "data": "SUMO Fowler Ave scenario (the demand and seed are in the start_live call)",
+ "device": "cpu",
+ "setup": "full",
+ "descriptions_of_your_tools": {
+  "lane_use": "Lane by lane at one approach's stop line, as of the last simulation step. intersection: cross streets, e.g. \"Fowler & McKinley\" (see list_intersections); approach: EB, WB, NB or SB (direction of travel). Lanes are listed from the median (left) to the curb (right), each named by the movements it serves at the stop line: left-turn, through, right-turn, or shared (for example shared through-right). SUMO's own lane index runs the other way (0 is the curb lane). For each lane: vehicles, stopped vehicles (below 0.1 m/s, SUMO's halting rule) and space-mean speed in mph, or \"no vehicles (speed not measured)\" on an empty lane, where SUMO's lane speed would report the speed limit. A lane that no connection leaves at the stop line serves no movement: it is listed but not counted as an approach lane. The reading covers only the edge at the stop line (its length is given), not the whole block: for the queue over the block use get_approach_state. One reading is a snapshot of one moment. A reading outside the analysis hour (900-4500 s) carries a WARM-UP or AFTER-PEAK warning. Read-only: time does not pass."
+ },
+ "tools_served": [
+  "list_intersections",
+  "start_live",
+  "advance",
+  "get_approach_state",
+  "get_corridor_state",
+  "get_signal_plan",
+  "set_signal_timing",
+  "take_screenshot",
+  "stop_live",
+  "check_calibration",
+  "webster_timing",
+  "compare_plans",
+  "lane_use"
+ ],
+ "instructions": "SUMO traffic simulation of the Fowler Ave corridor at USF Tampa (real OpenStreetMap network, synthetic demand). Name intersections by cross streets. Live tools need start_live first. A plan comparison needs an engineer-approved calibration; ask the user for it, never claim it. For what each lane at a stop line serves and holds, use lane_use: it names lanes by movement, from the median to the curb.",
+ "calls": [
+  {
+   "name": "list_intersections",
+   "arguments": {},
+   "check": "ok",
+   "result": "6 signals.\nE Fowler Ave & Bruce B Downs Blvd & N 30th St: EB 5 ln 45 mph 1,762 ft; NB 5 ln 45 mph 979 ft; SB 4 ln 45 mph 779 ft; WB 5 ln 45 mph 2,973 ft\nE Fowler Ave & USF Bull Run Dr: EB 6 ln 50 mph 2,324 ft; SB 2 ln 20 mph 698 ft; WB 3 ln 50 mph 893 ft\nBruce B Downs Blvd & USF Pine Dr: NB 5 ln 45 mph 729 ft; SB 5 ln 45 mph 1,061 ft; WB 3 ln 30 mph 1,179 ft\nLeroy Collins Blvd & USF Alumni Dr: EB 2 ln 30 mph 2,965 ft; NB 2 ln 20 mph 907 ft; SB 2 ln 20 mph 979 ft; WB 2 ln 20 mph 2,434 ft\nE Fowler Ave & McKinley Dr: EB 3 ln 50 mph 2,893 ft; NB 2 ln 45 mph 1,847 ft; WB 6 ln 50 mph 818 ft\nE Fowler Ave & Leroy Collins Blvd: EB 5 ln 50 mph 770 ft; SB 2 ln 20 mph 908 ft; WB 3 ln 50 mph 2,465 ft"
+  },
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Fowler & McKinley",
+    "approach": "WB"
+   },
+   "check": "ok",
+   "result": "E Fowler Ave & McKinley Dr, WB at 300 s: 3 vehicles on 818 ft of storage, 2 stopped; back of queue 20 ft (2 vehicles); 19 mph space-mean speed; 4 veh/mi/lane; through signal green, next change in 5 s. No spillback: the queue fills 2% of the storage (the flag is set at 85%). WARM-UP WARNING: 300 s is before the analysis hour (900-4500 s) and the network is still filling, so this reading says nothing about the peak. Call advance to reach 900 s or later, then read again."
+  },
+  {
+   "name": "get_lane_use",
+   "arguments": {
+    "intersection": "Fowler & McKinley",
+    "approach": "WB"
+   },
+   "check": "Error: there is no tool named get_lane_use. Tools: list_intersections, start_live, advance, get_approach_state, get_corridor_state, get_signal_plan, set_signal_timing, take_screenshot, stop_live, check_calibration, webster_timing, compare_plans, lane_use.",
+   "result": "Error: there is no tool named get_lane_use. Tools: list_intersections, start_live, advance, get_approach_state, get_corridor_state, get_signal_plan, set_signal_timing, take_screenshot, stop_live, check_calibration, webster_timing, compare_plans, lane_use."
+  },
+  {
+   "name": "lane_use",
+   "arguments": {
+    "intersection": "Fowler & McKinley",
+    "approach": "WB"
+   },
+   "check": "ok",
+   "result": "E Fowler Ave & McKinley Dr, WB at 300 s, the last 283 ft before the stop line: 5 of 6 lanes serve a movement (2 left-turn lanes, 3 through lanes). WARM-UP WARNING: 300 s is before the analysis hour (900-4500 s) and the network is still filling, so this reading says nothing about the peak. Call advance to reach 900 s or later, then read again.\nLanes from the median (left) to the curb (right):\n  1 (median side): left-turn lane: 1 vehicle, 1 stopped, 0 mph space-mean speed\n  2: left-turn lane: 1 vehicle, 1 stopped, 0 mph space-mean speed\n  3: no movement: no connection leaves this lane at the stop line, so it is not counted as an approach lane (in the field, a lane that ends or a connection the network is missing)\n  4: through lane: no vehicles (speed not measured)\n  5: through lane: 1 vehicle, 0 stopped, 57 mph space-mean speed\n  6 (curb): through lane: no vehicles (speed not measured)"
+  }
+ ],
+ "answer": "The lane use for the westbound Fowler Ave at McKinley is as follows:\n\n1. **Left-turn lane (lane 1, median side):** 1 vehicle, 1 stopped, 0 mph space-mean speed.\n2. **Left-turn lane (lane 2, median side):** 1 vehicle, 1 stopped, 0 mph space-mean speed.\n3. **No movement (lane 3, median side):** No connection leaves this lane at the stop line, so it is not counted as an approach lane.\n4. **Through lane (lane 4, median side):** No vehicles (speed not measured).\n5. **Through lane (lane 5, median side):** 1 vehicle, 0 stopped, 57 mph space-mean speed.\n6. **Through lane (lane 6, curb side):** No vehicles (speed not measured).\n\n**Note:** The reading is a snapshot at 300 seconds, which is before the analysis hour (900-4500 seconds). Therefore, it does not provide information about the peak hour. To get a better reading for the peak hour, call the `advance` function to reach 900 seconds or later.",
+ "note": null,
+ "turns": 4,
+ "model_s": 159.2,
+ "question_id": "mckinley_warmup",
+ "question": "The Fowler Ave simulation is running and is at 300 s. Tell me lane by lane what westbound Fowler at McKinley looks like. Is this reading good for the peak hour?"
+}

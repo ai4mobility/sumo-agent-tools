@@ -15,6 +15,10 @@ Then add yours as a folder, `contrib/<your-github-username>/`, sent as a pull re
 [`contrib/README.md`](contrib/README.md). Students in AI for Mobility: this is Assignment 6.
 `contrib/agent_loop.py` runs a model on your computer and saves the whole tool-calling loop, MCP messages included.
 
+**Checking a whole study?** [`CHECKS.md`](CHECKS.md) explains `check_study.py`. It reads the log of a run and checks it
+twice: sanity checks on the log (a gate sends failures back to the model before the answer goes out), and theory
+checks (HCM capacity, queueing) on its own replay of the run in SUMO, reported to the engineer.
+
 ## Why traffic knowledge belongs in the tool
 
 The model never reads your code. It reads a tool's name, its description, its inputs and the text that comes back.
@@ -73,6 +77,8 @@ Fowler Avenue along the USF Tampa campus, from west of N 30th St to east of USF 
 | `mcp_server.py` | Serves the toolkit over MCP (stdio) for Claude Code or Claude Desktop. |
 | `build_fowler.py` | Builds `fowler/`: the network, count stations, the hidden demand, the field counts and three rebuilt demands (`demand`, `demand_lp`, `random`). Downloads the OSM extract if it is missing. |
 | `test_claims.py` | Tests every claim the descriptions make, and six traps in the API docstrings, against SUMO. |
+| `check_study.py`, `CHECKS.md` | Checks a whole study from its log before the answer goes out: sanity checks for the model (`gate`), theory and replay checks for the engineer. |
+| `test_check_study.py` | Gives every check in `check_study.py` a case it must fail and a run it must pass (about 3 minutes). |
 | `experiments.py` | Produces `numbers_sumo_tools.json`, every number on the companion page (about 15 minutes). |
 | `gui_view.py`, `timing.py` | The sumo-gui screenshots (the TMC view) and run times with and without the window. |
 | `build_companion.py`, `companion_template.html` | Build the companion page from the numbers; the build fails if a number is missing. |
@@ -80,7 +86,7 @@ Fowler Avenue along the USF Tampa campus, from west of N 30th St to east of USF 
 | `docs/index.html` | The companion page. |
 | `WRITING_TOOLS.md` | How to turn traffic knowledge into a tool: descriptions, results, SUMO traps, tests, and how to watch a model use it. |
 | `examples/get_signal_state.py` | The guide's worked example: one TraCI call as an API wrapper and as an engineer's tool, with a test for each claim. |
-| `walkthrough/` | How a model calls these tools, step by step: a small Qwen harness, seven recorded runs on a laptop-size model, and every MCP message between a client and `mcp_server.py` ([walkthrough/README.md](walkthrough/README.md)). |
+| `walkthrough/` | How a model calls these tools, step by step: a small Qwen harness, eight recorded runs on a laptop-size model (the last one with a gate before the answer), a reference run with no model, and every MCP message between a client and `mcp_server.py` ([walkthrough/README.md](walkthrough/README.md)). |
 
 Rebuild everything:
 

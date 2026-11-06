@@ -9,10 +9,14 @@ things, and all of them are saved to qwen_run_<run>.json:
   4. the harness runs the tool, and the tool drives SUMO through TraCI (every TraCI call is counted)
   5. the result goes back to the model as a "tool" message, which the template wraps in <tool_response>
   6. repeat until the model writes no tool call: that text is its answer
+  6b. run H only: the gate (check_study.gate) checks that answer against the whole log first, and sends any
+      failed sanity check back to the model as the next message instead of letting the answer out
 
     pip install torch transformers          # a CPU is enough: 3.5-4 GB of memory in bfloat16
     python walkthrough/qwen_harness.py      # run G, the last one; downloads Qwen3-1.7B the first time (about 4 GB)
     python walkthrough/qwen_harness.py A    # runs A-F: the earlier runs, each fixed in the next (see RUNS)
+    python walkthrough/qwen_harness.py H    # run G's setup plus a gate: check_study's sanity checks read every
+                                            # answer before it goes out, and send failures back to the model
 """
 import collections, json, os, re, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +24,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 import torch, traci
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import sumo_agent_tools as T
+import check_study
 
 MENU = ['list_intersections', 'start_live', 'advance', 'get_approach_state', 'stop_live']
 SYSTEM_FIRST = ('You are an assistant to a traffic engineer. Answer questions from the SUMO simulation of the Fowler '
@@ -43,7 +48,11 @@ RUNS = {'A': dict(model=Q25, system=SYSTEM_FIRST, error='first', period='none', 
         'E': dict(model=Q25, system=SYSTEM, error='next', period='warmup', verdict='flag', gui='none',
                   replies=[ENGINEER]),
         'F': dict(model=Q3, system=SYSTEM, error='next', period='warmup', verdict='flag', gui='guard'),
-        'G': dict(model=Q3, system=SYSTEM, error='next', period='both', verdict='both', gui='guard')}
+        'G': dict(model=Q3, system=SYSTEM, error='next', period='both', verdict='both', gui='guard'),
+        # H: G plus a gate before the answer goes out (check_study.gate: sanity checks on the whole log)
+        'H': dict(model=Q3, system=SYSTEM, error='next', period='both', verdict='both', gui='guard', gate=True,
+                  max_steps=30)}
+MAX_GATES = 3          # how many times the gate may send an answer back before the harness lets it through, flagged
 QUESTION = 'Is Fowler Ave westbound at 30th St spilling back during the PM peak hour?'
 MAX_STEPS = 10
 
@@ -199,6 +208,7 @@ def main(run='G'):
     tag = '' if model_id == cfg['model'] else '_' + model_id.split('/')[-1]
     out_path = os.path.join(HERE, f'qwen_run_{run}{tag}.json')
     replies = list(cfg.get('replies', []))
+    gates = 0
     t_start = time.time()
     model = Qwen(model_id, menu_for(cfg))
     load_s = round(time.time() - t_start, 1)
@@ -206,7 +216,7 @@ def main(run='G'):
     log = {'run': run, 'setup': cfg, 'model': model_id, 'menu': MENU, 'question': QUESTION, 'load_s': load_s,
            'torch': torch.__version__, 'qwen_tools': model.tools, 'steps': []}
     try:
-        for step in range(1, MAX_STEPS + 1):
+        for step in range(1, cfg.get('max_steps', MAX_STEPS) + 1):
             prompt = model.prompt(messages)                                   # 1. the prompt
             if step == 1:
                 log['first_prompt'] = prompt
@@ -223,7 +233,22 @@ def main(run='G'):
                     messages.append({'role': 'user', 'content': rec['engineer']})
                     print(f'  engineer: {rec["engineer"]}')
                     continue
-                rec['note'] = 'no tool call: this text is the answer, so the loop stops'
+                if cfg.get('gate'):                                         # 6b. check the answer first
+                    feedback = check_study.gate({'question': QUESTION, 'answer': reply, 'steps': log['steps'] + [rec]})
+                    if feedback and gates < MAX_GATES:
+                        gates += 1
+                        rec['note'] = 'no tool call, so this is an answer: the gate checked it and sent it back'
+                        rec['gate'] = feedback
+                        log['steps'].append(rec)
+                        messages.append({'role': 'user', 'content': feedback})
+                        print(f'  gate: {feedback}')
+                        continue
+                    rec['gate'] = feedback or 'passed'
+                    if feedback:                                            # sent back MAX_GATES times already
+                        log['flagged'] = feedback
+                rec['note'] = ('no tool call: this text is the answer, so the loop stops' if not rec.get('gate', '')
+                               .startswith('Harness') else f'no tool call: the gate still fails after {MAX_GATES} '
+                               'send-backs, so the answer goes out flagged with the failed checks')
                 log['steps'].append(rec)
                 log['answer'] = reply
                 break
@@ -249,7 +274,7 @@ def main(run='G'):
             for r in results:                                                 # 5. the result goes back as text
                 messages.append({'role': 'tool', 'name': r['name'], 'content': r['result']})
         else:
-            log['note'] = f'stopped after {MAX_STEPS} steps without an answer'
+            log['note'] = f'stopped after {cfg.get("max_steps", MAX_STEPS)} steps without an answer'
     finally:
         log['cleanup'] = T.stop_live()                                        # the harness owns the SUMO process
     log['last_prompt'] = model.tok.apply_chat_template(messages, tools=model.tools, tokenize=False,

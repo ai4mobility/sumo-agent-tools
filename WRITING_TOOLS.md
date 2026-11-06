@@ -336,4 +336,27 @@ The traffic knowledge is the hard part of each of these. The Python is the easy 
 - **A run id from `start_live`.** The MCP specification advises tools to hand back an id when state lasts between
   calls, and later calls to pass it back.
 
+## 11. Measure what your work is worth: the ablation
+
+A tool is a claim that the agent does the task better with it. Writing your knowledge into the description and the
+result is a second claim: that the words the model reads matter, not only the code. `contrib/ablation.py` tests each
+claim with one comparison, on your own three questions:
+
+- **With and without your tools** (A vs. C): the toolkit alone, then your tools as written.
+- **With and without the knowledge in what the model reads** (B vs. C): your tools find the same data both times,
+  but in B the description is plain (`PLAIN_DESCRIPTIONS`), the result is raw (`RAW_RESULTS`), and your server
+  instructions are left out.
+
+In the worked example (`examples/ablation/`, the template's `lane_use`), the tool helped on one question of three,
+and that one shows the knowledge in the result at work: with the raw result the model listed the lanes in SUMO's
+order and missed the warm-up; with the written result it gave the lanes from the median, by movement, with the
+warning. On the other two questions the model took `get_approach_state` even with the full description.
+
+Give each question a `setup` in `ablation/tasks.json` that starts the simulation and advances it to the time the
+question is about. Without it, a small model spends its turns starting and advancing the simulation, and the runs
+say little about your tools.
+
+Write the questions and their right answers before you look at any run, and check each right answer against the
+data. When a result goes against you, it is still a result: read the answers to find out why.
+
 Questions and ideas are welcome as issues on this repository.

@@ -1,0 +1,74 @@
+{
+ "run": "reference",
+ "question": "Is Fowler Ave westbound at 30th St spilling back during the PM peak hour?",
+ "answer": "No spillback on Fowler Ave WB at 30th St in the PM peak hour: in 4 readings inside the hour (1500, 2400, 3300, 4200 s) the queue filled at most 60% of the storage (the flag is 85%).",
+ "calls": [
+  {
+   "name": "start_live",
+   "arguments": {
+    "gui": false
+   },
+   "result": "Started sumo (headless) with demand \"demand\", seed 1. Time 0 s. Warm-up until 900 s; analysis hour 900-4500 s."
+  },
+  {
+   "name": "advance",
+   "arguments": {
+    "seconds": 1500
+   },
+   "result": "Time 1500 s (analysis hour). In the last 1500 s: 1716 entered, 1411 left; network 0 -> 305 vehicles (+305 = 1716 - 1411). Waiting to enter: 0. Teleports: 0."
+  },
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Fowler & 30th",
+    "approach": "WB"
+   },
+   "result": "E Fowler Ave & Bruce B Downs Blvd & N 30th St, WB at 1500 s: 33 vehicles on 2,973 ft of storage, 15 stopped; back of queue 305 ft (15 vehicles); 9 mph space-mean speed; 16 veh/mi/lane; through signal red, next change in 14 s. No spillback: the queue fills 10% of the storage (the flag is set at 85%)."
+  },
+  {
+   "name": "advance",
+   "arguments": {
+    "seconds": 900
+   },
+   "result": "Time 2400 s (analysis hour). In the last 900 s: 1067 entered, 1007 left; network 305 -> 365 vehicles (+60 = 1067 - 1007). Waiting to enter: 0. Teleports: 0."
+  },
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Fowler & 30th",
+    "approach": "WB"
+   },
+   "result": "E Fowler Ave & Bruce B Downs Blvd & N 30th St, WB at 2400 s: 49 vehicles on 2,973 ft of storage, 32 stopped; back of queue 311 ft (15 vehicles); 5 mph space-mean speed; 24 veh/mi/lane; through signal red, next change in 14 s. No spillback: the queue fills 10% of the storage (the flag is set at 85%)."
+  },
+  {
+   "name": "advance",
+   "arguments": {
+    "seconds": 900
+   },
+   "result": "Time 3300 s (analysis hour). In the last 900 s: 1001 entered, 981 left; network 365 -> 385 vehicles (+20 = 1001 - 981). Waiting to enter: 0. Teleports: 0."
+  },
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Fowler & 30th",
+    "approach": "WB"
+   },
+   "result": "E Fowler Ave & Bruce B Downs Blvd & N 30th St, WB at 3300 s: 85 vehicles on 2,973 ft of storage, 59 stopped; back of queue 1,647 ft (68 vehicles); 7 mph space-mean speed; 42 veh/mi/lane; through signal red, next change in 14 s. No spillback: the queue fills 55% of the storage (the flag is set at 85%)."
+  },
+  {
+   "name": "advance",
+   "arguments": {
+    "seconds": 900
+   },
+   "result": "Time 4200 s (analysis hour). In the last 900 s: 1016 entered, 1000 left; network 385 -> 401 vehicles (+16 = 1016 - 1000). Waiting to enter: 0. Teleports: 0."
+  },
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Fowler & 30th",
+    "approach": "WB"
+   },
+   "result": "E Fowler Ave & Bruce B Downs Blvd & N 30th St, WB at 4200 s: 87 vehicles on 2,973 ft of storage, 68 stopped; back of queue 1,799 ft (81 vehicles); 2 mph space-mean speed; 43 veh/mi/lane; through signal red, next change in 14 s. No spillback: the queue fills 60% of the storage (the flag is set at 85%)."
+  }
+ ]
+}

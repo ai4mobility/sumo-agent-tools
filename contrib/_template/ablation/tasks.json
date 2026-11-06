@@ -1,0 +1,58 @@
+{
+ "about": "Your questions for the ablation (at least three), written before you run it. Each has an id, the question as the person in DESIGN.md section 1 would ask it, and the right answer: what a correct answer must say, and where you checked it. 'setup' lists the tool calls the harness makes before the model's first turn, the same in every setup: here it starts the simulation (seed 1) and advances it to the time the question is about, so the runs test your tools, not how a small model handles the simulation. Say that time in the question. 'max_steps' is the most model turns a run may take.",
+ "env": {},
+ "max_steps": 8,
+ "questions": [
+  {
+   "id": "pine_queue_lane",
+   "question": "The Fowler Ave simulation is running and is at 1,800 s. Which southbound lane at Bruce B Downs & USF Pine Dr is holding the queue?",
+   "answer": "The left-turn lane on the median side: 6 vehicles, all stopped. The through lanes hold 1 stopped vehicle (in the curb lane) and none in the other two. Checked with start_live, advance(1800) and lane_use('Bruce B Downs & Pine', 'SB'), seed 1.",
+   "setup": [
+    [
+     "start_live",
+     {}
+    ],
+    [
+     "advance",
+     {
+      "seconds": 1800
+     }
+    ]
+   ]
+  },
+  {
+   "id": "pine_empty_speed",
+   "question": "The Fowler Ave simulation is running and is at 1,800 s. How fast is traffic moving in the empty southbound through lanes at Bruce B Downs & USF Pine Dr?",
+   "answer": "It cannot be said: those lanes have no vehicles, so there is no speed to measure. SUMO's lane mean speed reports 20.12 m/s (45 mph) there, which is the speed limit, not a traffic speed. Checked with lane_use and lane_use_plain at 1,800 s, seed 1.",
+   "setup": [
+    [
+     "start_live",
+     {}
+    ],
+    [
+     "advance",
+     {
+      "seconds": 1800
+     }
+    ]
+   ]
+  },
+  {
+   "id": "mckinley_warmup",
+   "question": "The Fowler Ave simulation is running and is at 300 s. Tell me lane by lane what westbound Fowler at McKinley looks like. Is this reading good for the peak hour?",
+   "answer": "At 300 s, from the median: 2 left-turn lanes with 1 stopped vehicle each, a lane that serves no movement, then 3 through lanes with no vehicles, 1 vehicle at 57 mph, and no vehicles. It is not good for the peak hour: 300 s is in the warm-up, before the analysis hour (900-4500 s), while the network is still filling. Checked with start_live, advance(300) and lane_use('Fowler & McKinley', 'WB'), seed 1.",
+   "setup": [
+    [
+     "start_live",
+     {}
+    ],
+    [
+     "advance",
+     {
+      "seconds": 300
+     }
+    ]
+   ]
+  }
+ ]
+}

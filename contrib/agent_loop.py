@@ -74,7 +74,7 @@ class Model:
     def __init__(self, model_id, think, seed):
         import torch
         from transformers import AutoTokenizer, AutoModelForCausalLM
-        self.torch, self.think, self.seed = torch, think, seed
+        self.torch, self.think, self.seed, self.stream = torch, think, seed, True
         self.device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
         self.tok = AutoTokenizer.from_pretrained(model_id)
         # bfloat16 on a CPU (half the memory of float32); float16 on a GPU without bfloat16 and on Apple silicon
@@ -99,7 +99,8 @@ class Model:
         t0 = time.time()
         with torch.no_grad():
             out = self.lm.generate(ids, max_new_tokens=max_new, pad_token_id=self.tok.eos_token_id,
-                                   streamer=TextStreamer(self.tok, skip_prompt=True, skip_special_tokens=False), **kw)
+                                   streamer=TextStreamer(self.tok, skip_prompt=True, skip_special_tokens=False)
+                                   if self.stream else None, **kw)
         new = out[0, ids.shape[1]:]
         reply = self.tok.decode(new, skip_special_tokens=False)
         reply = reply.split('<|im_end|>')[0]                       # the model's end-of-turn mark
@@ -149,7 +150,8 @@ def data_note():
     return 'live feeds, read during the run'
 
 
-async def loop(server, question, opts, log_path):
+async def loop(server, question, opts, log_path, model=None):
+    """One question through the whole loop. contrib/ablation.py passes a model that is already loaded."""
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
     params = StdioServerParameters(command=sys.executable,
@@ -171,9 +173,16 @@ async def loop(server, question, opts, log_path):
             system = SYSTEM + ('\n\n' + init.instructions if getattr(init, 'instructions', None) else '')
             rec.update(server_name=init.server_info.name if hasattr(init, 'server_info') else init.serverInfo.name,
                        instructions=getattr(init, 'instructions', None), tools_for_model=tools, system=system)
-            print(f'Loading {opts["model"]} ...', file=sys.stderr)
+            for name, args in opts.get('setup') or []:         # contrib/ablation.py only: the harness sets the stage
+                res = await s.call_tool(name, args)            # (e.g. start the simulation) before the model's turn
+                rec.setdefault('setup', []).append({'name': name, 'arguments': args,
+                                                    'result': '\n'.join(getattr(c, 'text', str(c)) for c in res.content)})
+                print(f'----- setup by the harness: {name}({json.dumps(args)})', file=sys.stderr)
             t0 = time.time()
-            model = Model(opts['model'], opts['think'], opts['seed'])
+            if model is None:
+                print(f'Loading {opts["model"]} ...', file=sys.stderr)
+                model = Model(opts['model'], opts['think'], opts['seed'])
+            model.think, model.seed, model.stream = opts['think'], opts['seed'], opts.get('stream', True)
             rec['load_s'], rec['device'] = round(time.time() - t0, 1), model.device
             messages = [{'role': 'system', 'content': system}, {'role': 'user', 'content': question}]
             last_prompt = ''

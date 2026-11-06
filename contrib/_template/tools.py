@@ -10,13 +10,15 @@ two). Keep the shape:
   * the toolkit (sumo_agent_tools.py, imported as T) does the plumbing: the live simulation (T.start_live,
     T.advance), intersection names (T._resolve), approaches (T._approaches) and the analysis-hour warning
     (T._period_note). Your tools run in the same simulation as the toolkit's.
+  * PLAIN_DESCRIPTIONS and RAW_RESULTS (at the end) are for the ablation: the same tools, with the traffic
+    engineering knowledge taken out of what the model reads
 
 The example: "What is each lane doing at this approach?" SUMO answers lane by lane with ids like
 '905783594_3' and numbers its lanes from the curb, so a model that reads 'lane 0' as the left lane is wrong, and an
 empty lane reports the speed limit. lane_use adds what an engineer knows. KNOWLEDGE.md lists each rule with its
 source and its test.
 """
-import os, sys, statistics
+import os, sys, json, statistics
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import traci
 import sumo_agent_tools as T
@@ -101,7 +103,41 @@ TOOLS = [lane_use]
 READ_ONLY = {'lane_use'}
 SCHEMAS = {'lane_use': T._S(intersection=dict(T._INT), approach=dict(T._APP))}
 
+# For the ablation's plain setup (contrib/ablation.py): your tools with the traffic engineering knowledge taken out
+# of what the model reads. The reading stays the same; only the words change. The input schema (SCHEMAS) stays too.
+#   PLAIN_DESCRIPTIONS: each tool's description as any programmer would write it from the function signature alone
+#     (what it returns, its inputs, read-only), without what only a traffic engineer would add.
+#   RAW_RESULTS: for each tool, a function with the same inputs that returns the same data raw (here, SUMO's lanes
+#     and numbers in JSON), without the wording you designed (DESIGN.md, section 4).
+PLAIN_DESCRIPTIONS = {
+    'lane_use': 'Lane data at an intersection approach: for each lane, vehicles, halting vehicles and mean speed. '
+                'intersection: intersection name. approach: approach direction. Read-only.',
+}
+
+
+def lane_use_raw(intersection: str, approach: str) -> str:
+    """The same reading as lane_use, returned raw: SUMO's lanes and numbers, in JSON."""
+    T._need_live()
+    tid, _ = T._resolve(intersection)
+    app = T._approaches(tid)
+    if approach not in app:
+        return f'Error: approach {approach} not in {sorted(app)}'
+    edge = app[approach]
+    lanes = []
+    for lane in edge.getLanes():
+        sp = [traci.vehicle.getSpeed(v) for v in traci.lane.getLastStepVehicleIDs(lane.getID())]
+        lanes.append({'lane_id': lane.getID(), 'index': lane.getIndex(),
+                      'connections': sorted(c.getDirection() for c in lane.getOutgoing()),
+                      'vehicles': len(sp), 'halting': sum(v < T.STOPPED_MPS for v in sp),
+                      'mean_speed_mps': round(statistics.mean(sp), 2) if sp else None})
+    return json.dumps({'tls': tid, 'approach': approach, 'edge': edge.getID(), 'edge_length_m': round(edge.getLength(), 1),
+                       'time_s': traci.simulation.getTime(), 'lanes': lanes})
+
+
+RAW_RESULTS = {'lane_use': lane_use_raw}
+
 if __name__ == '__main__':
     print(T.start_live()); print(T.advance(1800))
     print(lane_use('Bruce B Downs & Pine', 'SB')); print(lane_use_plain('Bruce B Downs & Pine', 'SB'))
+    print(lane_use_raw('Bruce B Downs & Pine', 'SB'))
     T.stop_live()

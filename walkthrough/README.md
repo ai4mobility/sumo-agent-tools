@@ -13,6 +13,9 @@ result going back, and the answer.
 | `mcp_trace.py`, `mcp_trace.json`, `mcp_trace.jsonl` | Every MCP message between a test client and `../mcp_server.py` (no model involved). |
 | `raw_vs_result.py`, `raw_vs_result.json` | Everything TraCI returned for the reading in round 8 of run G, next to the sentence `get_approach_state` built from it. |
 | `summarize_runs.py`, `walkthrough_numbers.json` | One line per step for every run, and the numbers the handout quotes. |
+| `qwen_run_H.json` | Run G's setup with a gate before the answer goes out: `check_study.gate` reads the whole log and sends failed sanity checks back to the model. |
+| `reference_run.py`, `reference_run.json` | The same question done the careful way, with no model: four readings inside the analysis hour, 15 minutes apart. Every sanity check in `../check_study.py` passes on it. |
+| `check_C.txt`, `check_F.txt`, `check_G.txt`, `check_H.txt`, `check_reference.txt` | `check_study.py`'s report on each run (see `../CHECKS.md`). |
 
 ```
 pip install torch transformers            # a CPU is enough: 3.5-4 GB of memory in bfloat16
@@ -21,6 +24,9 @@ python walkthrough/qwen_harness.py A      # any of A-G
 python walkthrough/mcp_trace.py
 python walkthrough/raw_vs_result.py
 python walkthrough/summarize_runs.py
+python walkthrough/qwen_harness.py H      # run G plus the gate
+python walkthrough/reference_run.py       # the careful study, no model (about 15 s)
+python check_study.py walkthrough/qwen_run_G.json   # check a run: sanity, then theory (about a minute)
 ```
 
 ## The runs
@@ -37,9 +43,10 @@ every run can be made again with today's code.
 | E | Qwen2.5-1.5B-Instruct | After the engineer's "Yes, go ahead", asked `advance(4500)` to reach "the point where the analysis hour begins" (it begins at 900 s); the harness refused anything over 3,600 s; then the model wrote the next call as prose | A different model |
 | log | Qwen3-1.7B | Asked for sumo-gui on a server; after TraCI's "Could not connect" it asked again, eight times in all | `start_live` says to use `gui=false` |
 | F | Qwen3-1.7B | Read the queue at 8,100 s, after the peak, and answered "is spilling back" for 9% of the storage | The verdict is stated either way; AFTER-PEAK WARNING |
-| G | Qwen3-1.7B | Same calls; answered "no spillback" and mentioned the warning | Open: read during the analysis hour |
+| G | Qwen3-1.7B | Same calls; answered "no spillback" and mentioned the warning | A gate before the answer goes out (run H) |
+| H | Qwen3-1.7B | Run G plus `check_study.gate`. Its first answer (a reading at 8,100 s) was sent back; it started over, repeated the old plan, then started over again and read at 1,800 s. Two more answers were sent back because it read the same second over and over, which counts as one reading. After 3 send-backs the answer went out flagged: "no spillback", from readings at 1,800 s | Open: readings spread over the hour |
 
-Recorded on November 4, 2026, on a 2-core Intel Xeon cloud CPU with no GPU: SUMO 1.28.0, PyTorch 2.15.0 (CPU),
+Runs A-G recorded on November 4, 2026, and run H on November 6, on a 2-core Intel Xeon cloud CPU with no GPU: SUMO 1.28.0, PyTorch 2.15.0 (CPU),
 transformers 5.22.1, greedy decoding. Times will differ on your machine. Replies should repeat with the same versions;
 other versions or hardware can change a reply, and with it the rest of the run.
 

@@ -4,8 +4,8 @@
     python contrib/check.py --all                              # every folder in contrib/
 
 A folder passes when:
-  1. it is named after your GitHub username and has the six files: DESIGN.md, KNOWLEDGE.md, tools.py,
-     test_tools.py, server.py, AGENT_RUN.md
+  1. it is named after your GitHub username and has the files: DESIGN.md, KNOWLEDGE.md, tools.py,
+     test_tools.py, server.py, AGENT_RUN.md, ABLATION.md and ablation/tasks.json
   2. tools.py lists at least two new tools in TOOLS, each with type hints, '-> str', and a description of at least
      40 words that says whether the tool only reads ('Read-only.') or what it changes; READ_ONLY agrees; and a
      *_plain function (not in TOOLS) is the baseline for at least one of them
@@ -22,6 +22,9 @@ A folder passes when:
      person would ask them; (2) the tools and why each is useful; (3) how each description helps the model pick the
      tool, quoting each tool's description; (4) how the results help the model read them, quoting a result one of
      your tools returned in your transcripts
+  9. the ablation: PLAIN_DESCRIPTIONS and RAW_RESULTS in tools.py, a server.py that switches on ABLATION, at least
+     three questions with their right answers in ablation/tasks.json, every question run in the three setups by
+     contrib/ablation.py, and ABLATION.md with each answer graded and the two comparisons in your own words
 
 The workflow also checks that a pull request changes one folder, contrib/<the author's username>/, and nothing else:
     python contrib/check.py --changed <base commit> --author <github-username>
@@ -30,7 +33,11 @@ import os, re, sys, ast, json, asyncio, importlib, importlib.util, inspect, trac
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-FILES = ['DESIGN.md', 'KNOWLEDGE.md', 'tools.py', 'test_tools.py', 'server.py', 'AGENT_RUN.md']
+FILES = ['DESIGN.md', 'KNOWLEDGE.md', 'tools.py', 'test_tools.py', 'server.py', 'AGENT_RUN.md', 'ABLATION.md',
+         os.path.join('ablation', 'tasks.json')]
+ABLATION_SECTIONS = [('What my tools changed', 60), ('What the transportation knowledge changed', 60)]
+SETUPS = ['without', 'plain', 'full']
+GRADE = re.compile(r'^\s*\**\s*(right|partly|wrong)\b', re.I)
 DESIGN = [('The task', 80), ('The tools', 100), ('The descriptions', 100), ('The results', 100)]
 BASES = {'sumo_agent_tools.py': 'sumo_agent_tools', 'wzdx_tools.py': 'wzdx_tools'}
 PLACEHOLDER = re.compile(r'\bTODO\b|<your|<replace', re.I)
@@ -109,7 +116,7 @@ def check_folder(folder):
         return res
     ok(re.fullmatch(r'[a-z0-9][a-z0-9-]*', name), 'the folder is named after your GitHub username, in lowercase', name)
     missing = [f for f in FILES if not os.path.exists(os.path.join(folder, f))]
-    if not ok(not missing, 'the six files are there', 'missing: ' + ', '.join(missing) if missing else ''):
+    if not ok(not missing, 'the files are there', 'missing: ' + ', '.join(missing) if missing else ''):
         return res
     # 7. hygiene
     big, leaks = [], []
@@ -203,6 +210,15 @@ def check_folder(folder):
             want = {n: (n in ro) if n in names else (n in base_ro) for n in listed}
             wrong = sorted(n for n, r in listed.items() if r != want[n])
             ok(not wrong, 'server.py marks read-only tools read-only, and only those', ', '.join(wrong))
+            sp = os.path.join(folder, 'server.py')
+            without = asyncio.run(list_server_tools(sp, 'without', True))
+            ok(not set(without) & set(names), 'ablation: with ABLATION=without, server.py serves the toolkit only',
+               ', '.join(sorted(set(without) & set(names))))
+            plain_listed = asyncio.run(list_server_tools(sp, 'plain', True))
+            pd = getattr(M, 'PLAIN_DESCRIPTIONS', {}) or {}
+            bad_p = [n for n in names if norm(plain_listed.get(n, '')) != norm(pd.get(n, '\0'))]
+            ok(not bad_p, 'ablation: with ABLATION=plain, server.py serves your tools with PLAIN_DESCRIPTIONS',
+               ', '.join(bad_p))
         except Exception as e:
             ok(False, 'server.py starts and lists its tools', f'{type(e).__name__}: {e}'[:800])
     else:
@@ -277,17 +293,89 @@ def check_folder(folder):
     ok(any(found(q, res) for q in quotes(body['The results']) for res in results),
        'DESIGN.md, section 4: quotes a result one of your tools returned in your transcripts (4+ words, in quotes, '
        'word for word)', '' if results else 'no result from your tools in runs/*.json yet')
+    # 9. the ablation: A without your tools, B your tools with no knowledge in what the model reads, C yours
+    pd = getattr(M, 'PLAIN_DESCRIPTIONS', None)
+    if ok(isinstance(pd, dict) and all(n in pd for n in names), 'tools.py: PLAIN_DESCRIPTIONS has an entry for each tool',
+          ', '.join(n for n in names if not isinstance(pd, dict) or n not in pd)):
+        long_ = [n for t in tools for n in [t.__name__]
+                 if not (8 <= len(pd[n].split()) <= 0.6 * len((inspect.getdoc(t) or '').split()))]
+        ok(not long_, 'tools.py: each plain description has 8+ words and at most 60% of the full description '
+           '(the transportation knowledge taken out)', ', '.join(long_))
+    rr = getattr(M, 'RAW_RESULTS', None)
+    if ok(isinstance(rr, dict) and all(callable(rr.get(n)) and rr.get(n) is not t for n, t in zip(names, tools)),
+          'tools.py: RAW_RESULTS gives each tool a raw version (a separate function)',
+          ', '.join(n for n in names if not isinstance(rr, dict) or not callable(rr.get(n)))):
+        inputs = lambda f: [(k, v.annotation, v.default) for k, v in inspect.signature(f).parameters.items()]
+        diff_in = [n for n, t in zip(names, tools) if inputs(rr[n]) != inputs(t)]
+        ok(not diff_in, 'tools.py: each raw version takes the same inputs as its tool', ', '.join(diff_in))
+    ok('RAW_RESULTS' in open(os.path.join(folder, 'server.py'), encoding='utf-8').read(),
+       'server.py: with ABLATION=plain, your tools return their RAW_RESULTS')
+    try:
+        TK = json.load(open(os.path.join(folder, 'ablation', 'tasks.json'), encoding='utf-8'))
+        qs_ = TK.get('questions', [])
+        good_q = [q for q in qs_ if q.get('id') and len(str(q.get('question', '')).split()) >= 5
+                  and len(str(q.get('answer', '')).split()) >= 5 and not PLACEHOLDER.search(str(q.get('answer')))]
+        ids = [q.get('id') for q in qs_]
+        ok(len(good_q) >= 3 and len(set(ids)) == len(ids) == len(good_q),
+           'ablation/tasks.json: at least three questions, each with an id, the question and its right answer',
+           f'{len(good_q)} complete of {len(qs_)}')
+    except Exception as e:
+        ok(False, 'ablation/tasks.json reads as JSON', f'{type(e).__name__}: {e}')
+        return res
+    missing_r, stale, wrong_setup = [], [], []
+    for q in qs_:
+        for c in SETUPS:
+            f = f"{c}__{q.get('id')}.json"
+            p = os.path.join(folder, 'ablation', 'runs', f)
+            if not os.path.exists(p):
+                missing_r.append(f); continue
+            try:
+                r = json.load(open(p, encoding='utf-8'))
+            except Exception:
+                stale.append(f); continue
+            if r.get('harness') != 'ablation.py' or r.get('question') != q.get('question') or r.get('setup') != c \
+                    or not str(r.get('server', '')).replace('\\', '/').endswith(f'contrib/{name}/server.py'):
+                stale.append(f); continue
+            served = set(r.get('tools_served', [])); seen = r.get('descriptions_of_your_tools', {})
+            if (c == 'without' and served & set(names)) or (c != 'without' and not set(names) <= served) or \
+                    (c == 'plain' and any(norm(seen.get(n, '')) != norm((pd or {}).get(n, '\0')) for n in names)):
+                wrong_setup.append(f)
+    ok(not missing_r and not stale, 'ablation: every question run in all three setups by contrib/ablation.py, with '
+       'this folder\'s server and the current questions (ablation/runs/<setup>__<id>.json)',
+       '; '.join(x for x in (('missing: ' + ', '.join(missing_r)) if missing_r else '',
+                             ('run again (questions or server changed): ' + ', '.join(stale)) if stale else '') if x))
+    ok(not wrong_setup, 'ablation: each run used its setup (A: no tools of yours; B: your plain descriptions; C: yours)',
+       ', '.join(wrong_setup))
+    ok(os.path.exists(os.path.join(folder, 'ablation', 'answers.md')),
+       'ablation/answers.md is there (contrib/ablation.py writes it after a run of every question)')
+    AB = open(os.path.join(folder, 'ABLATION.md'), encoding='utf-8').read()
+    rows = {}
+    for line in (md_section(AB, 'Results') or '').splitlines():
+        cells = [x.strip() for x in line.strip().strip('|').split('|')]
+        if line.strip().startswith('|') and len(cells) >= 4:
+            rows[cells[0].strip('`* ')] = cells[1:4]
+    ungraded = [i for i in ids if i not in rows or not all(GRADE.match(x) for x in rows[i])]
+    ok(not ungraded, 'ABLATION.md: the Results table has a row for each question, and each of its three answers is '
+       'graded (right, partly or wrong, then why)', ', '.join(map(str, ungraded)))
+    for t, n_min in ABLATION_SECTIONS:
+        b2 = md_section(AB, t) or ''
+        ok(len(b2.split()) >= n_min and not PLACEHOLDER.search(b2) and any(str(i) in b2 for i in ids),
+           f'ABLATION.md: "{t}" answered (at least {n_min} words, naming one of your questions by its id)',
+           f'{len(b2.split())} words')
     return res
 
 
-async def list_server_tools(server_path):
+async def list_server_tools(server_path, ablation='full', descriptions=False):
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
-    p = StdioServerParameters(command=sys.executable, args=[server_path], env=dict(os.environ), cwd=ROOT)
+    env = dict(os.environ, ABLATION=ablation)
+    p = StdioServerParameters(command=sys.executable, args=[server_path], env=env, cwd=ROOT)
     async with stdio_client(p) as (r, w):
         async with ClientSession(r, w) as s:
             await asyncio.wait_for(s.initialize(), 120)
             tools = (await s.list_tools()).tools
+    if descriptions:
+        return {t.name: t.description or '' for t in tools}
     ro = lambda a: bool(a) and bool(getattr(a, 'read_only_hint', None) or getattr(a, 'readOnlyHint', None))
     return {t.name: ro(t.annotations) for t in tools}
 

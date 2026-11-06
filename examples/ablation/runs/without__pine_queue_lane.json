@@ -1,0 +1,44 @@
+{
+ "harness": "ablation.py",
+ "model": "Qwen/Qwen3-1.7B",
+ "thinking": false,
+ "seed": 1,
+ "server": "contrib/sumo-check/server.py",
+ "date": "2026-11-06T16:20:31-05:00",
+ "data": "SUMO Fowler Ave scenario (the demand and seed are in the start_live call)",
+ "device": "cpu",
+ "setup": "without",
+ "descriptions_of_your_tools": {},
+ "tools_served": [
+  "list_intersections",
+  "start_live",
+  "advance",
+  "get_approach_state",
+  "get_corridor_state",
+  "get_signal_plan",
+  "set_signal_timing",
+  "take_screenshot",
+  "stop_live",
+  "check_calibration",
+  "webster_timing",
+  "compare_plans"
+ ],
+ "instructions": "SUMO traffic simulation of the Fowler Ave corridor at USF Tampa (real OpenStreetMap network, synthetic demand). Name intersections by cross streets. Live tools need start_live first. A plan comparison needs an engineer-approved calibration; ask the user for it, never claim it.",
+ "calls": [
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Bruce B Downs & USF Pine Dr",
+    "approach": "SB"
+   },
+   "check": "ok",
+   "result": "Bruce B Downs Blvd & USF Pine Dr, SB at 1800 s: 17 vehicles on 1,061 ft of storage, 16 stopped; back of queue 360 ft (16 vehicles); 2 mph space-mean speed; 25 veh/mi/lane; through signal red, next change in 0 s. No spillback: the queue fills 34% of the storage (the flag is set at 85%)."
+  }
+ ],
+ "answer": "The southbound (SB) lane at Bruce B Downs & USF Pine Dr is holding a queue. The queue is 16 vehicles long, with the back of the queue located 360 feet from the signal. The space-mean speed is 2 mph, and the queue fills 34% of the storage, which is below the 85% threshold for spillback.",
+ "note": null,
+ "turns": 2,
+ "model_s": 52.9,
+ "question_id": "pine_queue_lane",
+ "question": "The Fowler Ave simulation is running and is at 1,800 s. Which southbound lane at Bruce B Downs & USF Pine Dr is holding the queue?"
+}
