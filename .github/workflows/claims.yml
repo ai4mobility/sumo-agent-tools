@@ -3,6 +3,7 @@ name: claim tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   claims:
@@ -15,3 +16,30 @@ jobs:
       - run: pip install eclipse-sumo==1.28.0 traci==1.28.0 sumolib==1.28.0 pyproj rtree
       - run: python test_claims.py
       - run: python examples/get_signal_state.py
+      - run: python contrib/_template/test_tools.py
+
+  contribution:
+    # a pull request adds one folder, contrib/<author>/, and it must pass contrib/check.py
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install eclipse-sumo==1.28.0 traci==1.28.0 sumolib==1.28.0 pyproj rtree "mcp>=2"
+      - run: python contrib/check.py --changed ${{ github.event.pull_request.base.sha }} --author ${{ github.event.pull_request.user.login }}
+
+  all-contributions:
+    # run by hand (Actions > claim tests > Run workflow): every folder in contrib/
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install eclipse-sumo==1.28.0 traci==1.28.0 sumolib==1.28.0 pyproj rtree "mcp>=2"
+      - run: python contrib/check.py --all

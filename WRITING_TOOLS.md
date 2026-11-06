@@ -299,7 +299,8 @@ does.
    - With Claude Code or Claude Desktop: nothing to add. `mcp_server.py` serves every tool in `TOOLS`. See
      `README.md` to connect it.
 7. **Open a pull request** and say what traffic knowledge your tool adds and how the tests show it
-   (`CONTRIBUTING.md`).
+   (`CONTRIBUTING.md`). To add tools as your own folder instead of changing `sumo_agent_tools.py` (Assignment 6),
+   follow `contrib/README.md`: the same steps, with `contrib/agent_loop.py` to record the whole loop.
 
 ## 9. Watch a model use your tool, and fix what you see
 

@@ -8,7 +8,14 @@ welcome to add tools, scenarios and better descriptions.
 **Every claim a tool description makes comes with a test.** A description is a promise to the model, and the model
 cannot check it. If a sentence in a docstring is not tested in `test_claims.py`, it is a guess.
 
-## Adding a tool
+## Adding your tools as a contribution folder
+
+Students in AI for Mobility (Assignment 6), and anyone who wants to add tools without changing the toolkit itself:
+each contribution is one folder, `contrib/<your-github-username>/`, sent as one pull request. Follow
+[`contrib/README.md`](contrib/README.md); `contrib/_template/` is a complete example. Before you open the pull
+request, run `python contrib/check.py contrib/<your-github-username>`; the workflow runs it again.
+
+## Adding a tool to the toolkit
 
 New to AI tools? Read [`WRITING_TOOLS.md`](WRITING_TOOLS.md) first. It walks through one tool from a raw TraCI call
 to a tested tool, and explains how to write descriptions and results a model can use. The steps below are the short
@@ -36,6 +43,9 @@ Put it in its own folder next to `fowler/`, with a build script like `build_fowl
 
 ## Pull requests
 
-- Run `python test_claims.py` before you open one; the GitHub workflow runs it again.
+- Run `python test_claims.py` before you open one (and `python contrib/check.py contrib/<you>` for a contribution
+  folder); the GitHub workflow runs them again.
+- A contribution folder and a change to the toolkit go in separate pull requests.
 - Say in the pull request what traffic knowledge the change adds and how the tests show it.
-- Do not commit simulation output (`runs/`), personal data, or data you do not have the right to share.
+- Do not commit simulation output (the top-level `runs/`), personal data, or data you do not have the right to
+  share. The transcripts in `contrib/<you>/runs/` are part of a contribution: commit those.

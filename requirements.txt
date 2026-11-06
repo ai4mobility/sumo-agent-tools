@@ -7,6 +7,7 @@ pyproj
 rtree
 # serve the tools to Claude over MCP
 mcp>=2
+# only for contrib/agent_loop.py and walkthrough/qwen_harness.py (a model on your computer): pip install torch transformers
 # only for experiments.py (token counts)
 tokenizers
 huggingface_hub
