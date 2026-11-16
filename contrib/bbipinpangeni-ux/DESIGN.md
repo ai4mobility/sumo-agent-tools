@@ -56,6 +56,12 @@ For example, `worst_queue_analysis` returned:
 This output identifies the approach, maximum queue, time of occurrence, and total observation period. It prevents the 359.6 ft queue measured at 1,800 seconds from being mistaken for the maximum queue during the analysis hour.
 
 The `upstream_spillback_assessment` result reported a queue of 359.6 ft, storage occupancy of 33.9%, and remaining storage of 701.2 ft at 1,800 seconds. The interpretation explicitly states that storage occupancy is a screening measurement and not confirmation of actual blockage.
+In the Qwen agent transcript [runs/q1.md](runs/q1.md), the `upstream_spillback_assessment` tool returned:
+
+> "Bruce B Downs Blvd & USF Pine Dr SB at 1800 s: queue 359.6 ft; available storage 1060.8 ft; storage occupied 33.9%; remaining storage 701.2 ft."
+
+The agent used the reported remaining storage to answer the question correctly. This demonstrates how the model extracted the engineering value from the tool response.
+
 
 The `corridor_delay_assessment` result reported a measured eastbound median travel time of 4.50 minutes from 31 completed trips, compared with a free-flow reference of 2.00 minutes. The approximately 2.50-minute difference describes baseline corridor travel-time delay. It must not be presented as delay caused by bridge maintenance because the simulation contains no maintenance lane closure.
 
