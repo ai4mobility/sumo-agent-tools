@@ -8,7 +8,8 @@ Each tool is a plain Python function. Its docstring is the description the model
 JSON schemas that a harness or an MCP server (mcp_server.py) hands to the model. test_claims.py checks the
 claims these descriptions make against real SUMO runs (tested with SUMO 1.28.0).
 
-Two kinds of tools:
+Three kinds of tools:
+  * static tools through SumoLib: for example, getting all outgoing edges in clock-wise direction.
   * live tools drive one running simulation through TraCI: start_live, advance, get_approach_state,
     get_corridor_state, get_signal_plan, set_signal_timing, take_screenshot, stop_live
   * study tools run complete headless simulations as separate SUMO processes and read the output files with
