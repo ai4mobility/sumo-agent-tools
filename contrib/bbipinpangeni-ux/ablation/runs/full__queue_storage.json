@@ -1,0 +1,53 @@
+{
+ "harness": "ablation.py",
+ "model": "Qwen/Qwen3-1.7B",
+ "thinking": false,
+ "seed": 1,
+ "server": "contrib/bbipinpangeni-ux/server.py",
+ "date": "2026-11-16T22:23:39+00:00",
+ "data": "SUMO Fowler Ave scenario (the demand and seed are in the start_live call)",
+ "device": "cpu",
+ "setup": "full",
+ "descriptions_of_your_tools": {
+  "worst_queue_analysis": "Measure the largest observed queue on one intersection approach during the remaining SUMO analysis period, ending at 4500 seconds. Specify an intersection name and the direction of travel: EB, WB, NB or SB. This tool changes simulation time by advancing the live simulation, taking readings at one-second intervals. It reports the largest measured queue, when it occurred, the available upstream storage, and whether the complete analysis hour was observed. The result is a simulated queue measurement, not proof of physical intersection blockage. Do not call it after the analysis period has ended.",
+  "upstream_spillback_assessment": "Inspect the current queue and available upstream storage on one SUMO intersection approach without advancing simulation time. Read-only. Specify the intersection and direction of travel: EB, WB, NB or SB. Report the simulated queue length, upstream storage length, percentage occupied, remaining storage and observation time. These measurements help an engineer investigate possible upstream queue spillback, but queue occupancy alone does not prove that an intersection is physically blocked. Treat this as a snapshot, not a maximum over time, and check the analysis period.",
+  "corridor_delay_assessment": "Assess Fowler Avenue corridor travel-time delay in the requested direction of travel, EB or WB, at the current SUMO simulation time. Read-only. This tool compares the median observed travel time of recently completed trips with the corridor free-flow reference and reports the additional travel time in minutes. It identifies the number of completed trips supporting the median, because results with few observations deserve caution. It also reports whether the current simulation time is outside the analysis hour. No completed trips means the tool cannot estimate a measured travel-time delay. This baseline corridor simulation does not represent a bridge maintenance lane closure.",
+  "approach_speed_assessment": "Use this tool when the question asks for mean vehicle speed, the number of stopped vehicles, or both, on a specific intersection approach. Report current traffic speed and stopped vehicles for a specified SUMO intersection approach, using the full upstream approach chain. Read-only. Accept an intersection name and travel direction EB, WB, NB or SB. The stopped count follows SUMO's halting definition of vehicle speed below 0.1 metres per second, which is different from the slower-moving vehicles counted by the toolkit queue algorithm. Report the number of vehicles and their instantaneous arithmetic mean speed in mph, without treating an empty approach as free-flow traffic. This result describes one simulation snapshot; it is not a speed history or direct evidence of a maintenance work zone."
+ },
+ "tools_served": [
+  "list_intersections",
+  "start_live",
+  "advance",
+  "get_approach_state",
+  "get_corridor_state",
+  "get_signal_plan",
+  "set_signal_timing",
+  "take_screenshot",
+  "stop_live",
+  "check_calibration",
+  "webster_timing",
+  "compare_plans",
+  "worst_queue_analysis",
+  "upstream_spillback_assessment",
+  "corridor_delay_assessment",
+  "approach_speed_assessment"
+ ],
+ "instructions": "SUMO traffic simulation of the Fowler Ave corridor at USF Tampa (real OpenStreetMap network, synthetic demand). Name intersections by cross streets. Live tools need start_live first. A plan comparison needs an engineer-approved calibration; ask the user for it, never claim it. For what each lane at a stop line serves and holds, use lane_use: it names lanes by movement, from the median to the curb.",
+ "calls": [
+  {
+   "name": "get_approach_state",
+   "arguments": {
+    "intersection": "Bruce B Downs & Pine",
+    "approach": "SB"
+   },
+   "check": "ok",
+   "result": "Bruce B Downs Blvd & USF Pine Dr, SB at 1800 s: 17 vehicles on 1,061 ft of storage, 16 stopped; back of queue 360 ft (16 vehicles); 2 mph space-mean speed; 25 veh/mi/lane; through signal red, next change in 0 s. No spillback: the queue fills 34% of the storage (the flag is set at 85%)."
+  }
+ ],
+ "answer": "The queue length at Bruce B Downs & Pine southbound is 16 vehicles, and the remaining upstream storage is 360 ft.",
+ "note": null,
+ "turns": 2,
+ "model_s": 2170.9,
+ "question_id": "queue_storage",
+ "question": "At 1800 s in the Fowler Avenue simulation, what is the queue length and remaining upstream storage at Bruce B Downs & Pine southbound?"
+}
