@@ -1,0 +1,43 @@
+{
+ "harness": "ablation.py",
+ "model": "Qwen/Qwen3-1.7B",
+ "thinking": false,
+ "seed": 1,
+ "server": "contrib/bbipinpangeni-ux/server.py",
+ "date": "2026-11-16T23:04:05+00:00",
+ "data": "SUMO Fowler Ave scenario (the demand and seed are in the start_live call)",
+ "device": "cpu",
+ "setup": "without",
+ "descriptions_of_your_tools": {},
+ "tools_served": [
+  "list_intersections",
+  "start_live",
+  "advance",
+  "get_approach_state",
+  "get_corridor_state",
+  "get_signal_plan",
+  "set_signal_timing",
+  "take_screenshot",
+  "stop_live",
+  "check_calibration",
+  "webster_timing",
+  "compare_plans"
+ ],
+ "instructions": "SUMO traffic simulation of the Fowler Ave corridor at USF Tampa (real OpenStreetMap network, synthetic demand). Name intersections by cross streets. Live tools need start_live first. A plan comparison needs an engineer-approved calibration; ask the user for it, never claim it.",
+ "calls": [
+  {
+   "name": "get_corridor_state",
+   "arguments": {
+    "direction": "EB"
+   },
+   "check": "ok",
+   "result": "Fowler Ave EB at 1800 s, 1.64 mi: measured travel time 4.5 min (median of 31 trips in the last 10 min); free-flow 2.0 min.\n  west end -> Bruce B Downs Blvd & N 30th St: 1,762 ft, 41 veh, 36 stopped, 5 mph\n  Bruce B Downs Blvd & N 30th St -> McKinley Dr: 2,893 ft, 19 veh, 13 stopped, 12 mph\n  McKinley Dr -> Leroy Collins Blvd: 793 ft, 4 veh, 2 stopped, 20 mph\n  Leroy Collins Blvd -> USF Bull Run Dr: 2,368 ft, 31 veh, 20 stopped, 11 mph\n  USF Bull Run Dr -> east end: 840 ft, empty"
+  }
+ ],
+ "answer": "The eastbound median travel time at Fowler Ave EB at 1800 s is 4.5 minutes. The free-flow reference is 2.0 minutes. The additional travel time is 2.5 minutes, and the completed-trip count is 31.",
+ "note": null,
+ "turns": 2,
+ "model_s": 1614.6,
+ "question_id": "fowler_delay",
+ "question": "At 1800 s in the Fowler Avenue simulation, what is the eastbound median travel time, free-flow reference, additional travel time and completed-trip count?"
+}
